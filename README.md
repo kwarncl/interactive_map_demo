@@ -1,4 +1,4 @@
-# Interactive Map Demo
+# Interactive Map Demo (AI generated readme file)
 
 A comprehensive Flutter application showcasing advanced interactive map implementations with multiple use cases including cruise destinations, ship deck plans, and route-based itinerary maps.
 
