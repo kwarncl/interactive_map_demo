@@ -21,9 +21,11 @@ This Flutter demo application demonstrates three distinct interactive map implem
 
 1. **Interactive Destination Map** - Great Stirrup Cay with POI markers and filtering
 2. **Multi-Deck Ship Map** - Norwegian Aqua deck plans with interactive polygon areas
-3. **Cruise Itinerary Map** - **Backend-driven** Caribbean route with automatic day positioning and path generation
+3. **Cruise Itinerary Map** - **Backend-driven** Caribbean & Transatlantic routes with automatic day positioning and path generation
 
 The project serves as a comprehensive reference for implementing complex interactive maps in Flutter applications, with a **special focus on backend integration**. The itinerary map demonstrates how to receive day-by-day location data from an API and automatically generate map markers, route paths, and interactive navigation.
+
+> 🎥 **Demo Videos Available**: Comprehensive video demonstrations are integrated within each feature section below, showcasing interactive features, animations, and user experience.
 
 ### 🔄 **Backend-Driven Map Concept**
 The core innovation is a **dynamic itinerary system** where:
@@ -34,6 +36,9 @@ The core innovation is a **dynamic itinerary system** where:
 ## ✨ Features
 
 ### 🏝️ Interactive Destination Map (Great Stirrup Cay)
+
+[![Great Stirrup Cay Demo](https://img.shields.io/badge/▶️_Watch_Demo-Great_Stirrup_Cay-blue?style=for-the-badge)](assets/videos/great-stirrup-cay.mp4)
+
 - **Pan & Zoom**: Full gesture support with `InteractiveViewer`
 - **Marker System**: POI markers with category-based filtering
 - **Responsive Zoom Tiers**: Markers appear/disappear based on zoom level
@@ -42,6 +47,9 @@ The core innovation is a **dynamic itinerary system** where:
 - **Gesture Handling**: Double-tap zoom, long-press reset, map tap deselection
 
 ### 🚢 Multi-Deck Ship Map (Norwegian Aqua)
+
+[![Deck Plan Demo](https://img.shields.io/badge/▶️_Watch_Demo-Deck_Plans-green?style=for-the-badge)](assets/videos/ncl-aqua-deck-plan.mp4)
+
 - **Deck Navigation**: Browse 16 decks (Decks 5-20) with mini-map
 - **Interactive Polygons**: Clickable areas for ship facilities
 - **Legend System**: Swipeable bottom sheet with facility categories
@@ -49,6 +57,9 @@ The core innovation is a **dynamic itinerary system** where:
 - **Responsive Design**: Adapts to different screen sizes and orientations
 
 ### 🗺️ Cruise Itinerary Map (Multiple Routes) - **Backend-Driven**
+
+[![Caribbean Cruise Demo](https://img.shields.io/badge/▶️_Caribbean_Demo-30MB-orange?style=for-the-badge)](assets/videos/caribbean-cruise.mp4) [![Transatlantic Cruise Demo](https://img.shields.io/badge/▶️_Transatlantic_Demo-22MB-purple?style=for-the-badge)](assets/videos/transatlantic-cruise.mp4)
+
 - **Multi-Itinerary Support**: Caribbean (7-day) and Transatlantic (15-night) cruise routes
 - **Dynamic Route Generation**: Routes automatically generated from backend itinerary data
 - **Automatic Marker Positioning**: Day markers placed using backend-provided coordinates
@@ -137,6 +148,11 @@ assets/
 │   ├── map.jpg                         # Great Stirrup Cay map (1.8MB)
 │   ├── caribbean_cruise_map.png        # Caribbean route map (20KB)
 │   └── norwegian_pearl_transatlantic_map.png  # Transatlantic route map (20KB)
+└── videos/
+    ├── great-stirrup-cay.mp4           # Interactive destination map demo (89MB)
+    ├── caribbean-cruise.mp4            # Caribbean cruise itinerary demo (30MB)
+    ├── transatlantic-cruise.mp4        # Transatlantic cruise itinerary demo (22MB)
+    └── ncl-aqua-deck-plan.mp4          # Norwegian Aqua deck plan demo (47MB)
 ```
 
 ## 🚀 Getting Started
@@ -450,6 +466,12 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 **Dependencies**: Minimal Flutter setup with `vector_math` for transformations.
 
 **Images**: `assets/images/map.jpg` (1.8MB Great Stirrup Cay), `caribbean_cruise_map.png` (20KB Caribbean route), `norwegian_pearl_transatlantic_map.png` (20KB Transatlantic route).
+
+**Demo Videos**: Video demonstrations integrated within feature sections, available in `assets/videos/`:
+- `great-stirrup-cay.mp4` (89MB) - Interactive destination map with POI filtering
+- `ncl-aqua-deck-plan.mp4` (47MB) - Multi-deck ship navigation with interactive polygons  
+- `caribbean-cruise.mp4` (30MB) - 7-day Caribbean cruise route with day navigation
+- `transatlantic-cruise.mp4` (22MB) - 15-night transatlantic cruise with auto-scrolling indicators
 
 **Performance**: Cached image sizes, efficient rendering, zoom-based visibility, minimal rebuilds.
 
