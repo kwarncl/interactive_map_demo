@@ -1,6 +1,6 @@
 # Interactive Map Demo (AI generated readme file)
 
-A comprehensive Flutter application showcasing advanced interactive map implementations with multiple use cases including cruise destinations, ship deck plans, and route-based itinerary maps.
+A comprehensive Flutter application showcasing advanced interactive map implementations with multiple use cases including cruise destinations, ship deck plans, route-based itinerary maps, and a **new cruise catalog system**.
 
 ## 📋 Table of Contents
 
@@ -17,11 +17,12 @@ A comprehensive Flutter application showcasing advanced interactive map implemen
 
 ## 🌟 Overview
 
-This Flutter demo application demonstrates three distinct interactive map implementations, each designed for different use cases:
+This Flutter demo application demonstrates four distinct interactive map implementations, each designed for different use cases:
 
 1. **Interactive Destination Map** - Great Stirrup Cay with POI markers and filtering
 2. **Multi-Deck Ship Map** - Norwegian Aqua deck plans with interactive polygon areas
 3. **Cruise Itinerary Map** - **Backend-driven** Caribbean & Transatlantic routes with automatic day positioning and path generation
+4. **Cruise Catalog Map** - **NEW** Interactive world map with NCL cruise routes, search, and filtering
 
 The project serves as a comprehensive reference for implementing complex interactive maps in Flutter applications, with a **special focus on backend integration**. The itinerary map demonstrates how to receive day-by-day location data from an API and automatically generate map markers, route paths, and interactive navigation.
 
@@ -77,6 +78,27 @@ The core innovation is a **dynamic itinerary system** where:
 - **No White Space Guarantee**: Calculated minimum scale ensures map always fills viewport
 - **Responsive Design**: Works flawlessly across different screen sizes and orientations
 
+### 🌍 Cruise Catalog Map - **NEW**
+
+[![Cruise Catalog Demo](https://img.shields.io/badge/▶️_Cruise_Catalog-NEW-red?style=for-the-badge)]
+
+- **Interactive World Map**: FlutterMap-based world view with NCL cruise routes
+- **Dynamic Zoom Tiers**: Cruises appear/disappear based on zoom level (essential, medium, detailed)
+- **Smart Cruise Selection**: Click routes to select cruises with automatic map fitting
+- **Port Cycling**: Tap port markers to cycle through all cruises visiting that port
+- **Advanced Search System**: Full-text search across cruise titles, ships, destinations, and ports
+- **Category Filtering**: Filter cruises by region (Caribbean, Mediterranean, Europe, etc.)
+- **Draggable Sheet Interface**: Collapsible bottom sheet with mode-specific content
+- **Sheet Mode System**: Normal browsing, search mode, and cruise details modes
+- **Haptic Feedback**: Tactile feedback for interactions (marker clicks only)
+- **Map Style Selection**: Multiple tile providers (CartoDB Light, Voyager, Dark)
+- **Spain & Portugal Cruises**: Comprehensive collection of realistic NCL itineraries
+- **Architecture Simplification**: Constructor-based configuration with defaults
+- **Search Functionality**: Fixed search dismissal issues with proper focus management
+- **Sheet Animation**: Smooth transitions between different sheet modes
+- **Centralized Scroll Management**: Single CustomScrollView with unified scroll controller
+- **Content-Only Widgets**: Separated content from scroll management for better animations
+
 ## 🏗️ Architecture
 
 ### Design Patterns
@@ -85,6 +107,8 @@ The core innovation is a **dynamic itinerary system** where:
 - **State Management**: Local state with `StatefulWidget` and `setState`
 - **Extension Methods**: Code reusability and clean APIs
 - **SOLID Principles**: Modular, maintainable, and extensible code
+- **Centralized Scroll Management**: Single CustomScrollView with unified controller
+- **Content-Only Architecture**: Separated content widgets from scroll management
 
 ### Key Architectural Decisions
 - **Backend-Driven Positioning**: All map elements positioned using backend-provided coordinate data
@@ -97,6 +121,8 @@ The core innovation is a **dynamic itinerary system** where:
 - **Performance Optimization**: Cached image sizes, efficient marker rendering, ScrollController management
 - **Theme Integration**: Consistent Material 3 design system usage
 - **Responsive Design**: Safe area handling and dynamic sizing
+- **Sheet Mode System**: Centralized CustomScrollView with switch-based content rendering
+- **Constructor-Based Configuration**: Simplified architecture with defaults passed through constructors
 
 ## 📁 Project Structure
 
@@ -125,6 +151,27 @@ lib/
 │       ├── deck_key_legend.dart
 │       ├── deck_mini_map.dart
 │       └── deck_polygon_overlay.dart
+├── cruise_catalog/                     # NEW: Cruise catalog system
+│   ├── cruise_catalog_map.dart        # Main world cruise map
+│   ├── cruise_world_explorer.dart     # Interactive cruise explorer
+│   ├── data/
+│   │   ├── expanded_ncl_catalog.dart  # Comprehensive NCL cruise data
+│   │   └── ncl_cruise_catalog.dart    # Original cruise catalog
+│   ├── models/
+│   │   ├── cruise_category.dart       # Cruise region categories
+│   │   ├── cruise_product.dart        # Cruise product model
+│   │   ├── cruise_route.dart          # Cruise route and waypoints
+│   │   └── sheet_mode.dart            # Sheet mode and position enums
+│   ├── pages/
+│   │   └── cruise_details_page.dart   # Dedicated cruise details page
+│   └── widgets/
+│       ├── cruise_details_mode_sheet.dart  # Cruise details content
+│       ├── cruise_route_overlay.dart  # Route rendering on map
+│       ├── cruise_search_bar.dart     # Search functionality
+│       ├── map_legend.dart            # Map legend widget
+│       ├── normal_mode_sheet.dart     # Normal browsing content
+│       ├── route_selection_popup.dart # Route selection UI
+│       └── search_mode_sheet.dart     # Search results content
 └── itinerary/                          # Cruise itinerary and route maps
     ├── data/                           # Sample itinerary data files
     │   ├── caribbean_cruise.dart       # Norwegian Aqua 7-day Caribbean cruise
@@ -147,7 +194,9 @@ assets/
 ├── images/
 │   ├── map.jpg                         # Great Stirrup Cay map (1.8MB)
 │   ├── caribbean_cruise_map.png        # Caribbean route map (20KB)
-│   └── norwegian_pearl_transatlantic_map.png  # Transatlantic route map (20KB)
+│   ├── norwegian_pearl_transatlantic_map.png  # Transatlantic route map (20KB)
+│   ├── cruise-ship.svg                 # Cruise ship icon
+│   └── deck-8.svg                      # Ship deck plan
 └── videos/
     ├── great-stirrup-cay.mp4           # Interactive destination map demo (89MB)
     ├── caribbean-cruise.mp4            # Caribbean cruise itinerary demo (30MB)
@@ -168,6 +217,10 @@ dependencies:
   flutter: sdk
   cupertino_icons: ^1.0.8
   vector_math: ^2.1.4
+  flutter_map: ^8.2.1
+  flutter_map_animations: ^0.9.0
+  latlong2: ^0.9.1
+  vector_map_tiles: ^9.0.0-beta.8
 
 dev_dependencies:
   flutter_test: sdk
@@ -194,7 +247,7 @@ dev_dependencies:
 ## 📱 Usage
 
 ### Navigation Flow
-1. **Home Screen**: Choose from three map types
+1. **Home Screen**: Choose from four map types
 2. **Interactive Maps**: Each demonstrates different interaction patterns
 3. **Detail Views**: Tap markers/areas for additional information
 
@@ -204,9 +257,48 @@ dev_dependencies:
 - **Reset**: Long press to return to initial view
 - **Selection**: Tap markers/areas for details
 
+### Cruise Catalog Features
+- **Zoom Tiers**: Essential (3-4), Medium (5-7), Detailed (8+) zoom levels
+- **Search**: Tap search icon to filter cruises by title, ship, or destination
+- **Categories**: Use destination chips to filter by region
+- **Route Selection**: Tap cruise routes to view details and fit map
+- **Port Cycling**: Tap port markers to cycle through visiting cruises
+
 ## 🔧 Technical Details
 
 ### Backend-Ready Coordinate System
+### Vector Tiles (MapTiler) and Unified MapConfig
+- Vector tiles are enabled via `vector_map_tiles` with a vector-first strategy and raster fallback.
+- A unified `MapConfig` drives both raster and vector setup:
+  - `rasterTiles: RasterTilesConfig(urlTemplate, subdomains?, userAgentPackageName?)`
+  - `vectorTiles: VectorTilesConfig(styleUri, apiKey?, providersOverride?)`
+- Tile orchestration (loading/error/fallback) is handled by `ItineraryMapTileLayers` using a `FutureBuilder` for the style.
+- Project map zoom rules: min 3, max 6.
+
+Example (MapTiler):
+```dart
+final config = MapConfig(
+  minZoom: 3,
+  maxZoom: 6,
+  initialZoom: 4.5,
+  userAgentPackageName: 'com.example.interactive_map_demo',
+  rasterTiles: MapConfig.freeRasterLayers.first,
+  vectorTiles: const VectorTilesConfig(
+    styleUri: 'https://api.maptiler.com/maps/streets-v2/style.json?key={key}',
+    apiKey: 'YOUR_MAPTILER_API_KEY',
+  ),
+);
+
+FlutterMap(
+  options: MapOptions(
+    initialCenter: const LatLng(25.7617, -80.1918),
+    initialZoom: 6.0,
+  ),
+  children: [
+    ItineraryMapTileLayers(mapConfig: config),
+  ],
+);
+```
 The project uses an **image-based coordinate system** designed for seamless backend integration. All positions are defined as `[x, y]` pixel coordinates relative to the source map images:
 
 ```dart
@@ -231,6 +323,46 @@ final position = _getDayPosition(dayIndex); // → Offset(100, 50)
 - **Zero Configuration**: No manual positioning or calibration needed
 - **Precision**: Pixel-perfect positioning on map images
 - **Dynamic Updates**: Change backend data, map updates automatically
+
+### Cruise Catalog Architecture
+The new cruise catalog system features a **centralized scroll management architecture**:
+
+```dart
+// Centralized CustomScrollView in CruiseWorldExplorer
+CustomScrollView(
+  controller: scrollController,
+  slivers: [
+    // Persistent header based on current mode
+    SliverPersistentHeader(
+      pinned: true,
+      delegate: _StickyHeaderDelegate(...),
+      child: switch (_currentSheetMode) {
+        SheetMode.search => SearchModeContent(...).buildHeader(theme),
+        SheetMode.cruiseDetails => CruiseDetailsModeContent(...).buildHeader(context),
+        SheetMode.normal => NormalModeContent(...).buildHeader(theme),
+      },
+    ),
+    
+    // Content based on current mode
+    SliverPadding(
+      sliver: SliverToBoxAdapter(
+        child: switch (_currentSheetMode) {
+          SheetMode.search => SearchModeContent(...),
+          SheetMode.cruiseDetails => CruiseDetailsModeContent(...),
+          SheetMode.normal => NormalModeContent(...),
+        },
+      ),
+    ),
+  ],
+)
+```
+
+**Architecture Benefits:**
+- **Animation Ready**: Easy to add animations when switching between sheet modes
+- **Consistent Scroll Behavior**: Single scroll controller ensures consistent behavior
+- **Cleaner Architecture**: Content widgets focus on rendering, parent manages scroll
+- **No Scroll Interruption**: Animations can be added without losing scroll state
+- **Efficient Rendering**: Switch statement allows for efficient widget tree updates
 
 ### Route Animation System
 The itinerary map features an advanced **bidirectional animation system** that provides intuitive visual feedback during navigation:
@@ -294,6 +426,8 @@ final double scaleToFillHeight = viewportSize.height / paddedImageHeight;
 - **Minimal Rebuilds**: Strategic `setState` usage for optimal performance
 - **Optimized Scaling**: Single scale calculation prevents redundant computations
 - **Smart Boundary Logic**: Efficient constraint checking with padded dimensions
+- **Centralized Scroll Management**: Single CustomScrollView reduces memory usage
+- **Content-Only Widgets**: Separated content from scroll management for better performance
 
 ### Animation System
 - **Smooth Transitions**: Easing curves for natural movement
@@ -303,12 +437,16 @@ final double scaleToFillHeight = viewportSize.height / paddedImageHeight;
 - **Progress-Based Animation**: Route fills/unfills based on navigation direction
 - **Curved Path Support**: Animations follow quadratic Bézier curve paths
 - **Smart Animation Logic**: Detects direction and animates appropriately
+- **Sheet Mode Transitions**: Smooth animations between different sheet modes
+- **Search Focus Management**: Proper focus handling prevents accidental dismissal
 
 ### State Management
 - **Local State**: `StatefulWidget` with `setState` for component-level state
 - **Controller Pattern**: `TransformationController` for map interactions
 - **Animation Controllers**: Dedicated controllers for different animation types
 - **Cached Data**: Strategic caching to prevent redundant calculations
+- **Sheet Mode Management**: Centralized state for different sheet modes
+- **Search State**: Proper focus and query management for search functionality
 
 ## 🔗 Backend Integration
 
@@ -423,7 +561,7 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 ## 🤖 AI Digest
 
 ### Quick Project Understanding
-**Purpose**: Flutter demo showcasing three interactive map implementations, with **primary focus on backend-driven itinerary maps** that automatically generate from API data.
+**Purpose**: Flutter demo showcasing four interactive map implementations, with **primary focus on backend-driven itinerary maps** that automatically generate from API data, plus a **new cruise catalog system**.
 
 **Key Innovation**: **Backend-Driven Map System**
 - Backend provides daily itinerary locations as `[x, y]` pixel coordinates
@@ -434,6 +572,7 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 - `InteractiveMap`: POI-based map with markers and filtering
 - `MultiDeckShipMap`: Deck plans with polygon interactions  
 - `ItineraryMap`: **Backend-driven** route map with automatic positioning
+- `CruiseCatalogMap`: **NEW** Interactive world map with NCL cruise routes and search
 
 **Coordinate System**: Image-based `[x, y]` pixel coordinates designed for backend integration.
 - Coordinates are pixel positions on map images (e.g., `[100, 50]`)
@@ -444,8 +583,24 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 - All map elements (markers, routes, taps) use same position calculation
 - `_generateRoutePositions()` creates paths from day coordinates
 - Dynamic updates when backend data changes
+- **Centralized Scroll Management**: Single CustomScrollView with unified controller
+- **Content-Only Widgets**: Separated content from scroll management for better animations
 
 **Recent Updates**: 
+- **NEW Cruise Catalog System**: Added comprehensive NCL cruise catalog with world map interface
+- **Vector Tiles Integration**: Integrated MapTiler via `vector_map_tiles` with vector-first loading and raster fallback
+- **Unified MapConfig**: Simplified API with `rasterTiles` and `vectorTiles` for consistent setup
+- **Tile Logic Refactor**: Extracted tile handling to `ItineraryMapTileLayers` (loading/error handled internally with `FutureBuilder`)
+- **Spain & Portugal Cruises**: Added realistic NCL itineraries for Mediterranean and European routes
+- **Architecture Simplification**: Constructor-based configuration with defaults passed through constructors
+- **Search Functionality**: Fixed search dismissal issues with proper focus management and sheet controller handling
+- **Sheet Mode System**: Centralized CustomScrollView with switch-based content rendering
+- **Content-Only Architecture**: Refactored sheet widgets to separate content from scroll management
+- **Haptic Feedback Control**: Limited haptic feedback to marker clicks only
+- **Map Height Fix**: Implemented camera constraints to prevent excessive scrolling
+- **Initial Zoom Correction**: Fixed zoom issues with dynamic zoom tracking and proper bounds fitting
+- **Header Click-Through**: Made header non-interactive while preserving specific button functionality
+- **Cruise Route Correction**: Replaced illogical routes with realistic NCL itineraries
 - **Data Architecture Refactoring**: Separated cruise itineraries into dedicated data files (`caribbean_cruise.dart`, `transatlantic_cruise.dart`)
 - **Model Separation**: Moved `PortData` and `ItineraryDay` models into core `cruise_itinerary.dart` for clean architecture
 - **Auto-Scrolling Day Indicators**: Implemented smooth auto-centering for day selection with ScrollController management
@@ -459,13 +614,13 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 - Fixed visual consistency issues (unified gray colors, removed overlapping paths)
 - Enhanced animation performance with dedicated animation controllers
 
-**File Structure**: Three main modules (`interactive_map/`, `deck_plan/`, `itinerary/`) with models, pages, and widgets subdirectories.
+**File Structure**: Four main modules (`interactive_map/`, `deck_plan/`, `cruise_catalog/`, `itinerary/`) with models, pages, and widgets subdirectories.
 
 **Entry Point**: `main.dart` → `MapSelectionScreen` → Individual map implementations.
 
-**Dependencies**: Minimal Flutter setup with `vector_math` for transformations.
+**Dependencies**: Flutter setup with `flutter_map`, `latlong2`, `flutter_map_animations` for cruise catalog.
 
-**Images**: `assets/images/map.jpg` (1.8MB Great Stirrup Cay), `caribbean_cruise_map.png` (20KB Caribbean route), `norwegian_pearl_transatlantic_map.png` (20KB Transatlantic route).
+**Images**: `assets/images/map.jpg` (1.8MB Great Stirrup Cay), `caribbean_cruise_map.png` (20KB Caribbean route), `norwegian_pearl_transatlantic_map.png` (20KB Transatlantic route), cruise ship icons and deck plans.
 
 **Demo Videos**: Video demonstrations integrated within feature sections, available in `assets/videos/`:
 - `great-stirrup-cay.mp4` (89MB) - Interactive destination map with POI filtering
@@ -473,9 +628,9 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 - `caribbean-cruise.mp4` (30MB) - 7-day Caribbean cruise route with day navigation
 - `transatlantic-cruise.mp4` (22MB) - 15-night transatlantic cruise with auto-scrolling indicators
 
-**Performance**: Cached image sizes, efficient rendering, zoom-based visibility, minimal rebuilds.
+**Performance**: Cached image sizes, efficient rendering, zoom-based visibility, minimal rebuilds, centralized scroll management.
 
-**State**: Local `StatefulWidget` state, `TransformationController` for map interactions, `AnimationController` for transitions.
+**State**: Local `StatefulWidget` state, `TransformationController` for map interactions, `AnimationController` for transitions, sheet mode management.
 
 **Backend Integration & Animation**: 
 - JSON API provides itinerary days with embedded coordinates
@@ -490,6 +645,9 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 - **Advanced Layout Management**: Dual-viewport system with 250px natural padding prevents UI overlay conflicts
 - **No White Space Guarantee**: Calculated minimum scale ensures map always fills entire viewport
 - **Smart Boundary Logic**: Padded coordinate system maintains proper constraints and interactions
+- **Cruise Catalog System**: Interactive world map with NCL routes, search, and filtering
+- **Centralized Scroll Management**: Single CustomScrollView with unified controller for all sheet modes
+- **Content-Only Architecture**: Separated content widgets from scroll management for better animations
 
 ## 🤝 Contributing
 
@@ -516,4 +674,4 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 
 ---
 
-**Flutter Version**: ^3.7.2 | **Material Design**: 3 | **Latest**: Route Animations & Widget Extraction | **License**: Private
+**Flutter Version**: ^3.7.2 | **Material Design**: 3 | **Latest**: Cruise Catalog & Sheet Architecture | **License**: Private
