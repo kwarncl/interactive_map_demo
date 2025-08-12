@@ -31,8 +31,7 @@ class MapConfig {
     this.allowRotate = true,
     this.allowPinch = true,
     required this.userAgentPackageName,
-    required this.rasterTiles,
-    this.vectorTiles,
+    required this.tilesConfig,
   });
 
   /// Minimum allowed map zoom.
@@ -59,12 +58,9 @@ class MapConfig {
   /// User agent string forwarded by tile requests.
   final String userAgentPackageName;
 
-  /// Single raster tiles configuration used as fallback when vector is absent.
-  final RasterTilesConfig rasterTiles;
-
-  /// Optional vector tiles configuration. When provided, screens may
-  /// render vector tiles instead of raster, using the configured style.
-  final VectorTilesConfig? vectorTiles;
+  /// Required tiles configuration (raster or vector). Determines which
+  /// rendering path is used by map widgets.
+  final TilesConfig tilesConfig;
 
   /// Duration for progressing route polylines between days.
   static const Duration routeProgress = Duration(milliseconds: 600);
@@ -77,58 +73,97 @@ class MapConfig {
 
   /// Default curve used for camera transitions.
   static const Curve cameraCurve = Curves.easeInOut;
-
-  /// Free raster provider options (cleaned up selection)
-  static List<RasterTilesConfig> freeRasterLayers = [
-    RasterTilesConfig(
-      urlTemplate:
-          'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-      subdomains: ['a', 'b', 'c', 'd'],
-    ),
-    RasterTilesConfig(
-      urlTemplate:
-          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-      subdomains: ['a', 'b', 'c', 'd'],
-    ),
-    RasterTilesConfig(
-      urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-      subdomains: ['a', 'b', 'c', 'd'],
-    ),
-  ];
 }
 
-/// Configuration for vector tiles (style JSON + optional API key).
-class VectorTilesConfig {
-  const VectorTilesConfig({
-    required this.styleUri,
-    this.apiKey,
-    this.providersOverride,
-  });
+/// Marker base class for raster or vector tile configuration.
+abstract class TilesConfig {
+  const TilesConfig();
+}
 
-  /// URL to a MapLibre/Mapbox style JSON (e.g., MapTiler style.json).
-  final String styleUri;
+/// Base type for vector tiles configuration (local or network style sources).
+///
+/// Consumers should rely on this base type; concrete variants are
+/// [NetworkVectorTilesConfig] and [LocalVectorTilesConfig].
+abstract class VectorTilesConfig extends TilesConfig {
+  const VectorTilesConfig();
 
-  /// API key required by the style (if any). Some styles embed the key
-  /// in the URI; in that case you can leave this null.
-  final String? apiKey;
+  /// URI or asset path to a MapLibre/Mapbox style JSON.
+  String get styleUri;
+
+  /// Optional API key (null for local styles).
+  String? get apiKey;
 
   /// Optional override for tile providers. When set, these providers will be
   /// used instead of the ones referenced by the style JSON. Useful for
   /// offline MBTiles/PMTiles or custom servers.
-  final TileProviders? providersOverride;
+  TileProviders? get providersOverride;
 }
 
-/// Configuration for a raster tile layer to keep API uniform with vector.
-class RasterTilesConfig {
+/// Vector tiles configuration using a remote style (http/https/mapbox).
+class NetworkVectorTilesConfig extends VectorTilesConfig {
+  const NetworkVectorTilesConfig({
+    required this.styleUrl,
+    required this.apiKeyValue,
+    this.providers,
+  });
+
+  /// Remote style URL (e.g., MapTiler/Mapbox style.json).
+  final String styleUrl;
+
+  /// Required API key for the remote style.
+  final String apiKeyValue;
+
+  /// Optional provider overrides.
+  final TileProviders? providers;
+
+  @override
+  String get styleUri => styleUrl;
+
+  @override
+  String? get apiKey => apiKeyValue;
+
+  @override
+  TileProviders? get providersOverride => providers;
+}
+
+/// Vector tiles configuration using a local style JSON (assets).
+class LocalVectorTilesConfig extends VectorTilesConfig {
+  const LocalVectorTilesConfig({required this.styleAssetPath, this.providers});
+
+  /// Asset path to the local style JSON (e.g., assets/styles/style.json).
+  final String styleAssetPath;
+
+  /// Optional provider overrides (usually required for fully offline use).
+  final TileProviders? providers;
+
+  @override
+  String get styleUri => styleAssetPath;
+
+  @override
+  String? get apiKey => null;
+
+  @override
+  TileProviders? get providersOverride => providers;
+}
+
+/// Configuration for a raster tile layer.
+///
+/// Covers the common properties required by `TileLayer` to render raster tiles
+/// in flutter_map.
+class RasterTilesConfig extends TilesConfig {
   const RasterTilesConfig({
     required this.urlTemplate,
     this.subdomains = const <String>[],
-    this.userAgentPackageName,
+    this.additionalOptions = const <String, String>{},
   });
 
   final String urlTemplate;
   final List<String> subdomains;
-  final String? userAgentPackageName;
+
+  /// Additional URL template options (e.g. {s} subdomain replacements beyond
+  /// the standard list, or API keys for servers that expect options instead of
+  /// query params).
+  final Map<String, String> additionalOptions;
 }
 
 /// Default location coordinates (Miami, FL).

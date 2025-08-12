@@ -1,7 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart' show rootBundle, ByteData;
 import 'package:flutter_map/flutter_map.dart';
+import 'package:interactive_map_demo/common/map_config.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:vector_map_tiles/vector_map_tiles.dart';
+import 'package:vector_tile_renderer/vector_tile_renderer.dart';
 
 /// A utility class for map-related calculations and geographic computations.
 ///
@@ -70,13 +78,17 @@ class MapUtilities {
     required bool canDrag,
     required bool canRotate,
     required bool canPinch,
+    bool enableMultiFingerGestureRace = false,
   }) {
     int flags = InteractiveFlag.all;
     if (!canDrag) flags &= ~InteractiveFlag.drag;
     if (!canRotate) flags &= ~InteractiveFlag.rotate;
     if (!canPinch) flags &= ~InteractiveFlag.pinchZoom;
 
-    return InteractionOptions(flags: flags);
+    return InteractionOptions(
+      flags: flags,
+      enableMultiFingerGestureRace: enableMultiFingerGestureRace,
+    );
   }
 
   /// Linearly interpolate between two [LatLng] points.
@@ -286,10 +298,10 @@ class MapUtilities {
   /// - **> 10° difference**: Zoom 5.0 (local area view)
   /// - **> 7° difference**: Zoom 5.5 (city cluster view)
   /// - **> 5° difference**: Zoom 6.0 (city view)
-  /// - **> 3° difference**: Zoom 6.5 (neighborhood view)
-  /// - **> 2° difference**: Zoom 7.0 (street view)
-  /// - **> 1° difference**: Zoom 7.5 (building view)
-  /// - **≤ 1° difference**: Zoom 8.0 (detail view)
+  /// - **> 3**: Zoom 6.5 (neighborhood view)
+  /// - **> 2**: Zoom 7.0 (street view)
+  /// - **> 1**: Zoom 7.5 (building view)
+  /// - **≤ 1**: Zoom 8.0 (detail view)
   ///
   /// **Note**: When [enforceBounds] is true, all calculated zoom levels are clamped
   /// to [minZoom, maxZoom] bounds. When false, zoom can exceed these bounds.
@@ -300,47 +312,13 @@ class MapUtilities {
   /// * [minZoom] - Minimum allowed zoom level (prevents over-zooming)
   /// * [maxZoom] - Maximum allowed zoom level (prevents under-zooming)
   /// * [zoomAdjustment] - Additive zoom adjustment. Positive values zoom in,
-  ///   negative values zoom out. Default is 0.0 (use computed zoom). This
-  ///   unifies the previous padding/zoomBias controls into one parameter.
+  ///   negative values zoom out.
   /// * [enforceBounds] - Whether to enforce min/max zoom bounds (default: true)
   ///
   /// ## Returns
   /// A record containing:
-  /// * [center] - The calculated center point (LatLng) for optimal route display
-  /// * [zoom] - The calculated zoom level (double) within the specified bounds
-  ///
-  /// ## Example
-  /// ```dart
-  /// // With bounds enforcement (default behavior)
-  /// final bounds = MapUtilities.calculateMapBounds(
-  ///   routeCoordinates: caribbeanRoute,
-  ///   initialZoom: 6.0,
-  ///   minZoom: 4.0,
-  ///   maxZoom: 15.0,
-  ///   padding: 0.05, // 5% padding
-  ///   enforceBounds: true, // Default
-  /// );
-  ///
-  /// // Without bounds enforcement (zoom can exceed min/max)
-  /// final unconstrainedBounds = MapUtilities.calculateMapBounds(
-  ///   routeCoordinates: caribbeanRoute,
-  ///   initialZoom: 6.0,
-  ///   minZoom: 4.0,
-  ///   maxZoom: 15.0,
-  ///   padding: 0.05,
-  ///   enforceBounds: false, // Allows zoom to exceed bounds
-  /// );
-  ///
-  /// // Use the calculated bounds
-  /// mapController.animateTo(
-  ///   dest: bounds.center,
-  ///   zoom: bounds.zoom,
-  /// );
-  /// ```
-  ///
-  /// ## Performance
-  /// Time complexity: O(n) where n is the number of route coordinates.
-  /// Space complexity: O(1) - only stores min/max values during calculation.
+  /// * [center] - The calculated center point (LatLng)
+  /// * [zoom] - The calculated zoom level (double)
   static ({LatLng center, double zoom}) calculateMapBounds({
     required List<LatLng> routeCoordinates,
     required double initialZoom,
@@ -351,8 +329,6 @@ class MapUtilities {
   }) {
     // Handle empty routes: fallback to a safe default location with initial zoom
     if (routeCoordinates.isEmpty) {
-      // Center at 0,0 as a neutral fallback. Callers can pass a domain-specific
-      // default if needed before invoking this method.
       final LatLng center = const LatLng(0, 0);
       final double clamped =
           enforceBounds
@@ -364,16 +340,15 @@ class MapUtilities {
     // If there is a single point, center there with a detailed zoom
     if (routeCoordinates.length == 1) {
       final LatLng center = routeCoordinates.first;
-      final double base = 8.0 + zoomAdjustment; // detailed view default
+      final double base = 8.0 + zoomAdjustment;
       final double zoom =
           enforceBounds ? base.clamp(minZoom, maxZoom).toDouble() : base;
       return (center: center, zoom: zoom);
     }
 
-    // Find bounds of all route coordinates, antimeridian-aware for longitude
+    // Find bounds
     double minLat = double.infinity;
     double maxLat = -double.infinity;
-    // Track longitudes in two spaces: normal [-180,180], and shifted [0,360)
     double minLng = double.infinity;
     double maxLng = -double.infinity;
     double minLngShift = double.infinity;
@@ -382,55 +357,45 @@ class MapUtilities {
     for (final LatLng c in routeCoordinates) {
       minLat = math.min(minLat, c.latitude);
       maxLat = math.max(maxLat, c.latitude);
-      // Normal space
       minLng = math.min(minLng, c.longitude);
       maxLng = math.max(maxLng, c.longitude);
-      // Shifted space to handle antimeridian-crossing clusters
       final double shifted = (c.longitude + 360.0) % 360.0;
       minLngShift = math.min(minLngShift, shifted);
       maxLngShift = math.max(maxLngShift, shifted);
     }
 
-    // Decide which longitude span is smaller: normal vs shifted
-    final double spanNormal = maxLng - minLng; // may be large across +180/-180
-    final double spanShifted = maxLngShift - minLngShift; // handles wrap
+    final double spanNormal = maxLng - minLng;
+    final double spanShifted = maxLngShift - minLngShift;
     late final double centerLng;
     if (spanShifted < spanNormal) {
-      // Use shifted space and map back to [-180,180]
       final double centerShift = (minLngShift + maxLngShift) / 2.0;
       centerLng = ((centerShift + 540.0) % 360.0) - 180.0;
     } else {
       centerLng = (minLng + maxLng) / 2.0;
     }
 
-    // Calculate center
     final LatLng center = LatLng((minLat + maxLat) / 2, centerLng);
 
-    // Calculate optimal zoom level
     final double latDiff = maxLat - minLat;
     final double lngDiff = math.min(spanNormal.abs(), spanShifted.abs());
     final maxDiff = math.max(latDiff, lngDiff);
 
-    // Calculate zoom level based on coordinate difference
-    // General thresholds for various map regions and scales
     final baseZoom = switch (maxDiff) {
-      > 50 => 2.0, // Global view
-      > 30 => 3.0, // Continental view
-      > 20 => 4.0, // Regional view
-      > 15 => 4.5, // Sub-regional view
-      > 10 => 5.0, // Local area view
-      > 7 => 5.5, // City cluster view
-      > 5 => 6.0, // City view
-      > 3 => 6.5, // Neighborhood view
-      > 2 => 7.0, // Street view
-      > 1 => 7.5, // Building view
-      _ => 8.0, // Detail view
+      > 50 => 2.0,
+      > 30 => 3.0,
+      > 20 => 4.0,
+      > 15 => 4.5,
+      > 10 => 5.0,
+      > 7 => 5.5,
+      > 5 => 6.0,
+      > 3 => 6.5,
+      > 2 => 7.0,
+      > 1 => 7.5,
+      _ => 8.0,
     };
 
-    // Apply optional zoom adjustment (positive => zoom in, negative => out)
     final double adjustedZoom = baseZoom + zoomAdjustment;
 
-    // Apply bounds enforcement if enabled
     if (enforceBounds) {
       final double clampedZoom =
           adjustedZoom.clamp(minZoom, maxZoom).toDouble();
@@ -440,44 +405,7 @@ class MapUtilities {
     return (center: center, zoom: adjustedZoom);
   }
 
-  /// Build a static polyline path along [ports] up to [progress] (0..1).
-  ///
-  /// Returns an empty list if there are fewer than 2 ports or progress <= 0.
-  static List<LatLng> buildStaticRoutePath(
-    List<LatLng> ports,
-    double progress,
-  ) {
-    final RoutePathComputer computer = RoutePathComputer();
-    final List<LatLng> buffer = computer.buildStaticInto(ports, progress);
-    return List<LatLng>.from(buffer);
-  }
-
-  /// Build an animated polyline segment between [startProgress] and [endProgress].
-  ///
-  /// Returns an empty list if inputs are invalid or fewer than 2 ports.
-
-  /// Build the full animated route given from/to progress and animation value.
-  ///
-  /// If the progress range is negligible, returns the static path up to
-  /// [toProgress] or the first point when empty.
-  static List<LatLng> buildAnimatedRouteCoordinates({
-    required List<LatLng> ports,
-    required double fromProgress,
-    required double toProgress,
-    required double animationT,
-  }) {
-    final RoutePathComputer computer = RoutePathComputer();
-    final List<LatLng> buffer = computer.buildAnimatedInto(
-      ports,
-      fromProgress,
-      toProgress,
-      animationT,
-    );
-    return List<LatLng>.from(buffer);
-  }
-
   /// Get geographic position along the route at normalized progress (0..1).
-  /// Useful for centering/zooming on the currently selected day.
   static LatLng positionAtProgress(List<LatLng> ports, double progress) {
     if (ports.isEmpty) {
       return const LatLng(0, 0);
@@ -495,19 +423,181 @@ class MapUtilities {
     final LatLng end = ports[segIndex + 1];
     return interpolateLatLng(start, end, t);
   }
+
+  // ======================
+  // Offline MBTiles (vector)
+  // ======================
+
+  /// Ensure a MBTiles file is available from assets.
+  ///
+  /// This method copies the MBTiles file from assets to the application's
+  /// internal storage if it's not already present.
+  static Future<String> ensureMbtilesAvailableFromAssets({
+    required String assetPath,
+  }) async {
+    final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
+    final String fileName = path.basename(assetPath);
+    final String filePath = path.join(appDocumentsDir.path, fileName);
+
+    if (await File(filePath).exists()) {
+      return filePath;
+    }
+
+    final ByteData data = await rootBundle.load(assetPath);
+    await File(filePath).writeAsBytes(data.buffer.asUint8List());
+    return filePath;
+  }
+
+  /// Build a [TileProviders] object from a single [VectorTileProvider].
+  static TileProviders createTileProviders({
+    required VectorTileProvider provider,
+    required String sourceName,
+  }) {
+    return TileProviders(<String, VectorTileProvider>{sourceName: provider});
+  }
+
+  /// Build a [MapConfig] for offline vector maps using a local style and providers.
+  static MapConfig buildOfflineVectorMapConfig({
+    required String userAgentPackageName,
+    required String styleAssetPath,
+    required TileProviders providers,
+    required double minZoom,
+    required double maxZoom,
+    required double initialZoom,
+    required bool canDrag,
+    required bool canRotate,
+    required bool canPinch,
+  }) {
+    return MapConfig(
+      minZoom: minZoom,
+      maxZoom: maxZoom,
+      initialZoom: initialZoom,
+      userAgentPackageName: userAgentPackageName,
+      allowDrag: canDrag,
+      allowRotate: canRotate,
+      allowPinch: canPinch,
+      tilesConfig: LocalVectorTilesConfig(
+        styleAssetPath: styleAssetPath,
+        providers: providers,
+      ),
+    );
+  }
+
+  static Future<MapConfig> buildOfflineVectorMapConfigFromAssets({
+    required MapConfig baseConfig,
+    required String styleAssetPath,
+    required String mbtilesAssetPath,
+    required VectorTileProvider Function(String mbtilesPath) createProvider,
+    required String sourceName,
+  }) async {
+    final String mbtilesPath = await ensureMbtilesAvailableFromAssets(
+      assetPath: mbtilesAssetPath,
+    );
+    final VectorTileProvider provider = createProvider(mbtilesPath);
+    final TileProviders providers = createTileProviders(
+      provider: provider,
+      sourceName: sourceName,
+    );
+    return MapConfig(
+      minZoom: baseConfig.minZoom,
+      maxZoom: baseConfig.maxZoom,
+      initialZoom: baseConfig.initialZoom,
+      defaultLocation: baseConfig.defaultLocation,
+      allowDrag: baseConfig.allowDrag,
+      allowRotate: baseConfig.allowRotate,
+      allowPinch: baseConfig.allowPinch,
+      userAgentPackageName: baseConfig.userAgentPackageName,
+      tilesConfig: LocalVectorTilesConfig(
+        styleAssetPath: styleAssetPath,
+        providers: providers,
+      ),
+    );
+  }
+
+  /// Read a vector style JSON from assets and construct a [Style] using
+  /// the provided [TileProviders]. This avoids network fetching for styles.
+  static Future<Style> readVectorStyleFromAssets({
+    required String styleAssetPath,
+    required TileProviders providers,
+    Logger? logger,
+  }) async {
+    final String styleText = await rootBundle.loadString(styleAssetPath);
+    final Map<String, dynamic> style =
+        jsonDecode(styleText) as Map<String, dynamic>;
+
+    final String? name = style['name'] as String?;
+    final Theme theme = ThemeReader(
+      logger: logger ?? const Logger.noop(),
+    ).read(style);
+
+    // Resolve sprites locally if present
+    SpriteStyle? sprites;
+    final Object? spriteField = style['sprite'];
+    if (spriteField is String && spriteField.trim().isNotEmpty) {
+      // Expect a base path without extension, e.g. assets/styles/sprites/sprite
+      final String base = spriteField.replaceFirst(RegExp(r'^asset://'), '');
+      final String jsonPath = '$base.json';
+      final String pngPath = '$base.png';
+      try {
+        final String spritesJsonText = await rootBundle.loadString(jsonPath);
+        final Map<String, dynamic> spritesJson =
+            jsonDecode(spritesJsonText) as Map<String, dynamic>;
+        final SpriteIndex index = SpriteIndexReader(
+          logger: logger ?? const Logger.noop(),
+        ).read(spritesJson);
+        sprites = SpriteStyle(
+          atlasProvider: () async {
+            final ByteData data = await rootBundle.load(pngPath);
+            return data.buffer.asUint8List(
+              data.offsetInBytes,
+              data.lengthInBytes,
+            );
+          },
+          index: index,
+        );
+      } catch (_) {
+        // Leave sprites null if any asset missing
+      }
+    }
+
+    // Optional center/zoom from style
+    LatLng? centerPoint;
+    double? zoom;
+    final Object? center = style['center'];
+    if (center is List && center.length == 2) {
+      centerPoint = LatLng(
+        (center[1] as num).toDouble(),
+        (center[0] as num).toDouble(),
+      );
+    }
+    final Object? zoomObj = style['zoom'];
+    if (zoomObj is num) {
+      zoom = zoomObj.toDouble();
+      if (zoom < 2) {
+        zoom = null;
+        centerPoint = null;
+      }
+    }
+
+    return Style(
+      name: name,
+      theme: theme,
+      providers: providers,
+      sprites: sprites,
+      center: centerPoint,
+      zoom: zoom,
+    );
+  }
 }
 
 /// Efficient, reusable path builder that avoids per-frame allocations.
-/// Keep one instance per map and reuse across animations.
 class RoutePathComputer {
   final List<LatLng> _buffer = <LatLng>[];
 
-  /// Return an internal reusable buffer containing the static path up to progress.
   List<LatLng> buildStaticInto(List<LatLng> ports, double progress) {
     _buffer.clear();
-    if (ports.isEmpty) return _buffer; // keep empty; caller should gate
+    if (ports.isEmpty) return _buffer;
     if (progress <= 0) {
-      // Ensure at least one point so polyline bounds never asserts
       _buffer.add(ports.first);
       return _buffer;
     }
@@ -535,9 +625,6 @@ class RoutePathComputer {
     return _buffer;
   }
 
-  /// Return an internal reusable buffer containing the animated route for the
-  /// current frame. Forward returns static path to `cap`, reverse returns the
-  /// shrinking path down to `cap`. Never allocates a new list per call.
   List<LatLng> buildAnimatedInto(
     List<LatLng> ports,
     double fromProgress,
@@ -545,7 +632,7 @@ class RoutePathComputer {
     double animationT,
   ) {
     _buffer.clear();
-    if (ports.isEmpty) return _buffer; // caller should avoid drawing
+    if (ports.isEmpty) return _buffer;
     if (ports.length < 2) return _buffer..add(ports.first);
 
     if ((fromProgress - toProgress).abs() < 0.001) {

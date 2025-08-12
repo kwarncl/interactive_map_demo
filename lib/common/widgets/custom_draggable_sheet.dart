@@ -7,18 +7,21 @@ class CustomDraggableSheet extends StatelessWidget {
     this.initialChildSize = 0.3,
     this.minChildSize = 0.3,
     this.maxChildSize = 1.0,
+    this.controller,
   });
 
   final List<Widget> slivers;
   final double initialChildSize;
   final double minChildSize;
   final double maxChildSize;
+  final DraggableScrollableController? controller;
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
       child: DraggableScrollableSheet(
+        controller: controller,
         initialChildSize: initialChildSize,
         minChildSize: minChildSize,
         maxChildSize: maxChildSize,
@@ -44,7 +47,7 @@ class CustomDraggableSheet extends StatelessWidget {
               children: [
                 // Drag handle
                 Container(
-                  margin: const EdgeInsets.only(top: 8),
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(

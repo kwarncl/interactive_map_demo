@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:interactive_map_demo/common/map_config.dart';
+import 'package:interactive_map_demo/common/map_utilities.dart';
 import 'package:interactive_map_demo/deck_plan/deck_8_svg_polygon_provider.dart';
 import 'package:interactive_map_demo/deck_plan/models/deck_polygon_data.dart';
 import 'package:interactive_map_demo/deck_plan/models/ship_deck_data.dart';
@@ -13,8 +14,10 @@ import 'package:interactive_map_demo/itinerary_map/data/transatlantic_cruise.dar
     as itinerary_map_transatlantic;
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:mbtiles/mbtiles.dart';
 
-import 'cruise_catalog/cruise_world_explorer.dart';
+import 'common/mbtiles/mbtiles_vector_tile_provider.dart';
+import 'cruise_catalog/cruise_catalog.dart';
 import 'cruise_catalog/data/expanded_ncl_catalog.dart';
 import 'deck_plan/multi_deck_ship_map.dart';
 import 'interactive_map/interactive_map.dart';
@@ -37,11 +40,6 @@ enum FeatureTag {
 
 class Home extends StatelessWidget {
   const Home({super.key});
-
-  // MapTiler vector style configuration (supply your API key)
-  static const String mapTilerStyleUri =
-      'https://api.maptiler.com/maps/streets-v2/style.json?key={key}';
-  static const String mapTilerApiKey = 'PnpOLcoRzl5Xtdi82Ty9';
 
   @override
   Widget build(BuildContext context) {
@@ -176,10 +174,8 @@ class Home extends StatelessWidget {
                                 allowPinch: false,
                                 userAgentPackageName:
                                     'com.example.interactive_map_demo',
-                                rasterTiles: MapConfig.freeRasterLayers.first,
-                                vectorTiles: const VectorTilesConfig(
-                                  styleUri: mapTilerStyleUri,
-                                  apiKey: mapTilerApiKey,
+                                tilesConfig: const LocalVectorTilesConfig(
+                                  styleAssetPath: 'assets/styles/style.json',
                                 ),
                               ),
                               routeCoordinates:
@@ -255,10 +251,8 @@ class Home extends StatelessWidget {
                                 allowPinch: false,
                                 userAgentPackageName:
                                     'com.example.interactive_map_demo',
-                                rasterTiles: MapConfig.freeRasterLayers.first,
-                                vectorTiles: const VectorTilesConfig(
-                                  styleUri: mapTilerStyleUri,
-                                  apiKey: mapTilerApiKey,
+                                tilesConfig: const LocalVectorTilesConfig(
+                                  styleAssetPath: 'assets/styles/style.json',
                                 ),
                               ),
                               routeCoordinates:
@@ -346,7 +340,7 @@ class Home extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             const SectionHeader(
-              title: 'World Cruises',
+              title: 'Cruise Catalog',
               icon: Icons.public,
               description:
                   'Browse global cruise destinations and routes from around the world',
@@ -354,7 +348,7 @@ class Home extends StatelessWidget {
             HorizontalCardList(
               cards: [
                 _MapCard(
-                  title: 'NCL World Cruise Catalog',
+                  title: 'NCL Cruise Catalog',
                   subtitle:
                       'Explore worldwide cruise destinations with interactive filtering',
                   icon: Icons.public,
@@ -365,13 +359,37 @@ class Home extends StatelessWidget {
                     FeatureTag.interactiveMap,
                     FeatureTag.mapRendering,
                   ],
-                  onTap: () {
+                  onTap: () async {
+                    final MapConfig offlineConfig =
+                        await MapUtilities.buildOfflineVectorMapConfigFromAssets(
+                          baseConfig: const MapConfig(
+                            minZoom: 3.0,
+                            maxZoom: 6.0,
+                            initialZoom: 4.5,
+                            allowRotate: false,
+                            userAgentPackageName:
+                                'com.example.interactive_map_demo',
+                            tilesConfig: LocalVectorTilesConfig(
+                              styleAssetPath: 'assets/styles/style.json',
+                            ),
+                          ),
+                          styleAssetPath: 'assets/styles/style.json',
+                          mbtilesAssetPath: 'assets/tiles/planet_map.mbtiles',
+                          createProvider:
+                              (path) => MbTilesVectorTileProvider(
+                                mbtiles: MbTiles(mbtilesPath: path),
+                              ),
+                          sourceName: 'openmaptiles',
+                        );
+                    if (!context.mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute<void>(
                         builder:
-                            (context) => CruiseWorldExplorer(
+                            (context) => CruiseCatalog(
+                              title: 'NCL Cruise Catalog',
                               cruises: ExpandedNCLCatalog.allCruises,
+                              mapConfig: offlineConfig,
                             ),
                       ),
                     );
@@ -620,7 +638,7 @@ class _MapCard extends StatelessWidget {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'asset://assets/images/map.jpg',
                 userAgentPackageName: 'com.example.interactive_map_demo',
               ),
             ],
