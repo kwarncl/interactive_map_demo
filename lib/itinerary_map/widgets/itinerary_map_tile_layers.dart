@@ -33,29 +33,36 @@ class _ItineraryMapTileLayersState extends State<ItineraryMapTileLayers> {
   @override
   void didUpdateWidget(covariant ItineraryMapTileLayers oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.mapConfig.vectorTiles != widget.mapConfig.vectorTiles) {
+    if (oldWidget.mapConfig.tilesConfig != widget.mapConfig.tilesConfig) {
       _prepareFuture();
     }
   }
 
   void _prepareFuture() {
-    final VectorTilesConfig? cfg = widget.mapConfig.vectorTiles;
-    if (cfg == null) {
+    final TilesConfig tilesConfig = widget.mapConfig.tilesConfig;
+    if (tilesConfig is! VectorTilesConfig) {
       setState(() => _styleFuture = null);
       return;
     }
     setState(() {
-      _styleFuture = StyleReader(uri: cfg.styleUri, apiKey: cfg.apiKey).read();
+      _styleFuture =
+          StyleReader(
+            uri: tilesConfig.styleUri,
+            apiKey: tilesConfig.apiKey,
+          ).read();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Raster-only configuration
-    if (widget.mapConfig.vectorTiles == null) {
+    // Raster configuration
+    if (widget.mapConfig.tilesConfig is RasterTilesConfig) {
+      final RasterTilesConfig raster =
+          widget.mapConfig.tilesConfig as RasterTilesConfig;
       return TileLayer(
-        urlTemplate: widget.mapConfig.rasterTiles.urlTemplate,
-        subdomains: widget.mapConfig.rasterTiles.subdomains,
+        urlTemplate: raster.urlTemplate,
+        subdomains: raster.subdomains,
+        additionalOptions: raster.additionalOptions,
         userAgentPackageName: widget.mapConfig.userAgentPackageName,
       );
     }
@@ -81,59 +88,43 @@ class _ItineraryMapTileLayersState extends State<ItineraryMapTileLayers> {
           case ConnectionState.done:
             if (snapshot.hasError) {
               if (widget.showErrorBanner) {
-                return Stack(
-                  children: [
-                    TileLayer(
-                      urlTemplate: widget.mapConfig.rasterTiles.urlTemplate,
-                      subdomains: widget.mapConfig.rasterTiles.subdomains,
-                      userAgentPackageName:
-                          widget.mapConfig.userAgentPackageName,
-                    ),
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'Vector style failed; using raster tiles',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-                        ),
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Vector style failed; using raster tiles',
+                        style: Theme.of(context).textTheme.labelMedium,
                       ),
                     ),
-                  ],
+                  ),
                 );
               }
-              return TileLayer(
-                urlTemplate: widget.mapConfig.rasterTiles.urlTemplate,
-                subdomains: widget.mapConfig.rasterTiles.subdomains,
-                userAgentPackageName: widget.mapConfig.userAgentPackageName,
-              );
+              return const SizedBox.shrink();
             }
 
             final Style style = snapshot.data!;
             return VectorTileLayer(
+              layerMode: VectorTileLayerMode.vector,
               theme: style.theme,
               sprites: style.sprites,
               tileProviders:
-                  widget.mapConfig.vectorTiles?.providersOverride ??
+                  (widget.mapConfig.tilesConfig as VectorTilesConfig)
+                      .providersOverride ??
                   style.providers,
             );
           case ConnectionState.none:
             // Shouldn't happen, but return raster for safety
-            return TileLayer(
-              urlTemplate: widget.mapConfig.rasterTiles.urlTemplate,
-              subdomains: widget.mapConfig.rasterTiles.subdomains,
-              userAgentPackageName: widget.mapConfig.userAgentPackageName,
-            );
+            return const SizedBox.shrink();
         }
       },
     );
