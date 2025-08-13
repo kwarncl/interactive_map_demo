@@ -112,7 +112,7 @@ class _ItineraryMapTileLayersState extends State<ItineraryMapTileLayers> {
         if (_localVectorStyle != null) {
           final Style style = _localVectorStyle!;
           return VectorTileLayer(
-            layerMode: VectorTileLayerMode.vector,
+            layerMode: VectorTileLayerMode.raster,
             theme: style.theme,
             sprites: style.sprites,
             tileProviders: tilesConfig.providersOverride ?? style.providers,
@@ -207,7 +207,7 @@ class _ItineraryMapTileLayersState extends State<ItineraryMapTileLayers> {
 
                 final Style style = snapshot.data!;
                 return VectorTileLayer(
-                  layerMode: VectorTileLayerMode.vector,
+                  layerMode: VectorTileLayerMode.raster,
                   theme: style.theme,
                   sprites: style.sprites,
                   tileProviders:
