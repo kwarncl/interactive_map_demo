@@ -28,7 +28,7 @@ class MapConfig {
     this.initialZoom = 4.5,
     this.defaultLocation = const MapConfigDefaultLocation(),
     this.allowDrag = true,
-    this.allowRotate = true,
+    this.allowRotate = false,
     this.allowPinch = true,
     required this.userAgentPackageName,
     required this.tilesConfig,

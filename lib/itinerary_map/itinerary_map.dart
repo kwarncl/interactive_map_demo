@@ -314,9 +314,9 @@ class _ItineraryMapState extends State<ItineraryMap>
                 bounds: _routeBounds,
               ),
               interactionOptions: MapUtilities.buildInteractionOptions(
-                canDrag: widget.mapConfig.allowDrag,
-                canRotate: widget.mapConfig.allowRotate,
-                canPinch: widget.mapConfig.allowPinch,
+                canDrag: false,
+                canRotate: false,
+                canPinch: false,
               ),
             ),
             children: [
