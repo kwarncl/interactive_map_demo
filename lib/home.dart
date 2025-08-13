@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:interactive_map_demo/common/map_config.dart';
 import 'package:interactive_map_demo/common/map_utilities.dart';
+import 'package:interactive_map_demo/common/widgets/custom_map_tile_layers.dart';
 import 'package:interactive_map_demo/deck_plan/deck_8_svg_polygon_provider.dart';
 import 'package:interactive_map_demo/deck_plan/models/deck_polygon_data.dart';
 import 'package:interactive_map_demo/deck_plan/models/ship_deck_data.dart';
@@ -148,7 +149,32 @@ class Home extends StatelessWidget {
                     FeatureTag.interactiveMap,
                     FeatureTag.mapRendering,
                   ],
-                  onTap: () {
+                  previewRoute:
+                      itinerary_map_data
+                          .CaribbeanCruiseData
+                          .norwegianAquaCaribbean
+                          .routeCoordinates
+                          .map((coord) => LatLng(coord[0], coord[1]))
+                          .toList(),
+                  onTap: () async {
+                    final MapConfig offlineConfig =
+                        await MapUtilities.buildOfflineVectorMapConfigFromAssets(
+                          baseConfig: const MapConfig(
+                            userAgentPackageName:
+                                'com.example.interactive_map_demo',
+                            tilesConfig: LocalVectorTilesConfig(
+                              styleAssetPath: 'assets/styles/style.json',
+                            ),
+                          ),
+                          styleAssetPath: 'assets/styles/style.json',
+                          mbtilesAssetPath: 'assets/tiles/planet_map.mbtiles',
+                          createProvider:
+                              (path) => MbTilesVectorTileProvider(
+                                mbtiles: MbTiles(mbtilesPath: path),
+                              ),
+                          sourceName: 'openmaptiles',
+                        );
+                    if (!context.mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -170,14 +196,7 @@ class Home extends StatelessWidget {
                                       .norwegianAquaCaribbean
                                       .days
                                       .first,
-                              mapConfig: MapConfig(
-                                allowPinch: false,
-                                userAgentPackageName:
-                                    'com.example.interactive_map_demo',
-                                tilesConfig: const LocalVectorTilesConfig(
-                                  styleAssetPath: 'assets/styles/style.json',
-                                ),
-                              ),
+                              mapConfig: offlineConfig,
                               routeCoordinates:
                                   itinerary_map_data
                                       .CaribbeanCruiseData
@@ -225,7 +244,32 @@ class Home extends StatelessWidget {
                     FeatureTag.interactiveMap,
                     FeatureTag.mapRendering,
                   ],
-                  onTap: () {
+                  previewRoute:
+                      itinerary_map_transatlantic
+                          .TransatlanticCruiseData
+                          .norwegianPearlMediterranean
+                          .routeCoordinates
+                          .map((c) => LatLng(c[0], c[1]))
+                          .toList(),
+                  onTap: () async {
+                    final MapConfig offlineConfig =
+                        await MapUtilities.buildOfflineVectorMapConfigFromAssets(
+                          baseConfig: const MapConfig(
+                            userAgentPackageName:
+                                'com.example.interactive_map_demo',
+                            tilesConfig: LocalVectorTilesConfig(
+                              styleAssetPath: 'assets/styles/style.json',
+                            ),
+                          ),
+                          styleAssetPath: 'assets/styles/style.json',
+                          mbtilesAssetPath: 'assets/tiles/planet_map.mbtiles',
+                          createProvider:
+                              (path) => MbTilesVectorTileProvider(
+                                mbtiles: MbTiles(mbtilesPath: path),
+                              ),
+                          sourceName: 'openmaptiles',
+                        );
+                    if (!context.mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -247,14 +291,7 @@ class Home extends StatelessWidget {
                                       .norwegianPearlMediterranean
                                       .days
                                       .first,
-                              mapConfig: MapConfig(
-                                allowPinch: false,
-                                userAgentPackageName:
-                                    'com.example.interactive_map_demo',
-                                tilesConfig: const LocalVectorTilesConfig(
-                                  styleAssetPath: 'assets/styles/style.json',
-                                ),
-                              ),
+                              mapConfig: offlineConfig,
                               routeCoordinates:
                                   itinerary_map_transatlantic
                                       .TransatlanticCruiseData
@@ -359,6 +396,8 @@ class Home extends StatelessWidget {
                     FeatureTag.interactiveMap,
                     FeatureTag.mapRendering,
                   ],
+                  previewCenter: LatLng(25.7617, -80.1918),
+                  previewZoom: 6.0,
                   onTap: () async {
                     final MapConfig offlineConfig =
                         await MapUtilities.buildOfflineVectorMapConfigFromAssets(
@@ -494,6 +533,9 @@ class _MapCard extends StatelessWidget {
     this.features,
     this.imageAsset,
     this.progressPercentage,
+    this.previewCenter,
+    this.previewZoom,
+    this.previewRoute,
   });
 
   final String title;
@@ -503,6 +545,22 @@ class _MapCard extends StatelessWidget {
   final List<FeatureTag>? features;
   final String? imageAsset;
   final int? progressPercentage;
+  final LatLng? previewCenter;
+  final double? previewZoom;
+  final List<LatLng>? previewRoute;
+
+  Future<({LatLng center, double zoom})> _computePreviewCamera() async {
+    if (previewCenter != null && previewZoom != null) {
+      return (center: previewCenter!, zoom: previewZoom!);
+    }
+    final List<LatLng> route = previewRoute ?? const <LatLng>[];
+    if (route.isNotEmpty) {
+      // Focus on the first port (home port) for a cleaner preview.
+      return (center: route.first, zoom: 6.5);
+    }
+    // Fallback to Miami if route is missing
+    return (center: const LatLng(25.7617, -80.1918), zoom: 6.0);
+  }
 
   Widget _buildPreviewContent() {
     if (features == null || features!.isEmpty) return const SizedBox.shrink();
@@ -625,23 +683,45 @@ class _MapCard extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 120,
-          child: FlutterMap(
-            options: MapOptions(
-              initialCenter: const LatLng(
-                25.7617,
-                -80.1918,
-              ), // Miami coordinates
-              initialZoom: 6.0,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.none, // Disable interactions for preview
+          child: FutureBuilder<List<Object>>(
+            future: Future.wait<Object>([
+              _computePreviewCamera(),
+              MapUtilities.buildOfflineVectorMapConfigFromAssets(
+                baseConfig: const MapConfig(
+                  userAgentPackageName: 'com.example.interactive_map_demo',
+                  tilesConfig: LocalVectorTilesConfig(
+                    styleAssetPath: 'assets/styles/style.json',
+                  ),
+                ),
+                styleAssetPath: 'assets/styles/style.json',
+                mbtilesAssetPath: 'assets/tiles/planet_map.mbtiles',
+                createProvider:
+                    (path) => MbTilesVectorTileProvider(
+                      mbtiles: MbTiles(mbtilesPath: path),
+                    ),
+                sourceName: 'openmaptiles',
               ),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'asset://assets/images/map.jpg',
-                userAgentPackageName: 'com.example.interactive_map_demo',
-              ),
-            ],
+            ]),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.length < 2) {
+                return Container(color: Theme.of(context).colorScheme.surface);
+              }
+
+              final data = snapshot.data!;
+              final camera = data[0] as ({LatLng center, double zoom});
+              final mapConfig = data[1] as MapConfig;
+
+              return FlutterMap(
+                options: MapOptions(
+                  initialCenter: camera.center,
+                  initialZoom: camera.zoom,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.none,
+                  ),
+                ),
+                children: [CustomMapTileLayers(mapConfig: mapConfig)],
+              );
+            },
           ),
         ),
       );

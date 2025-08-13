@@ -48,6 +48,7 @@ class _ItineraryMapState extends State<ItineraryMap>
 
   // Cached map bounds
   late final ({LatLng center, double zoom}) _mapBounds;
+  late final LatLngBounds _routeBounds;
   late final List<LatLng> ports;
 
   @override
@@ -90,6 +91,7 @@ class _ItineraryMapState extends State<ItineraryMap>
       maxZoom: widget.mapConfig.maxZoom,
       zoomAdjustment: 0.5,
     );
+    _routeBounds = MapUtilities.buildPaddedBounds(widget.routeCoordinates);
     ports =
         widget.itineraryDays
             .where((day) => day.port != null)
@@ -306,8 +308,11 @@ class _ItineraryMapState extends State<ItineraryMap>
             options: MapOptions(
               initialCenter: _mapBounds.center,
               initialZoom: _mapBounds.zoom,
-              minZoom: widget.mapConfig.minZoom,
+              minZoom: _mapBounds.zoom,
               maxZoom: widget.mapConfig.maxZoom,
+              cameraConstraint: CameraConstraint.containCenter(
+                bounds: _routeBounds,
+              ),
               interactionOptions: MapUtilities.buildInteractionOptions(
                 canDrag: widget.mapConfig.allowDrag,
                 canRotate: widget.mapConfig.allowRotate,

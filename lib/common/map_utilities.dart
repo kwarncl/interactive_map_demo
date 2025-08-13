@@ -405,6 +405,43 @@ class MapUtilities {
     return (center: center, zoom: adjustedZoom);
   }
 
+  /// Build padded LatLng bounds around a set of coordinates.
+  ///
+  /// Padding is applied as a fraction of the span in each dimension with a
+  /// minimum degree pad to ensure usable bounds for short routes.
+  static LatLngBounds buildPaddedBounds(
+    List<LatLng> coordinates, {
+    double paddingFactor = 0.025,
+    double minPadDegrees = 0.09,
+  }) {
+    if (coordinates.isEmpty) {
+      return LatLngBounds(const LatLng(-85, -180), const LatLng(85, 180));
+    }
+    double minLat = double.infinity;
+    double maxLat = -double.infinity;
+    double minLng = double.infinity;
+    double maxLng = -double.infinity;
+    for (final LatLng c in coordinates) {
+      if (c.latitude < minLat) minLat = c.latitude;
+      if (c.latitude > maxLat) maxLat = c.latitude;
+      if (c.longitude < minLng) minLng = c.longitude;
+      if (c.longitude > maxLng) maxLng = c.longitude;
+    }
+    final double latSpan = (maxLat - minLat).abs();
+    final double lngSpan = (maxLng - minLng).abs();
+    final double latPad = (latSpan * paddingFactor).clamp(minPadDegrees, 90.0);
+    final double lngPad = (lngSpan * paddingFactor).clamp(minPadDegrees, 180.0);
+    final LatLng southWest = LatLng(
+      (minLat - latPad).clamp(-85.0, 85.0),
+      (minLng - lngPad).clamp(-180.0, 180.0),
+    );
+    final LatLng northEast = LatLng(
+      (maxLat + latPad).clamp(-85.0, 85.0),
+      (maxLng + lngPad).clamp(-180.0, 180.0),
+    );
+    return LatLngBounds(southWest, northEast);
+  }
+
   /// Get geographic position along the route at normalized progress (0..1).
   static LatLng positionAtProgress(List<LatLng> ports, double progress) {
     if (ports.isEmpty) {
