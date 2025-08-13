@@ -700,7 +700,7 @@ class _CruiseCatalogState extends State<CruiseCatalog>
                 minZoom: widget.mapConfig.minZoom,
                 maxZoom: widget.mapConfig.maxZoom,
                 // Allow horizontal wrapping - map repeats at edges
-                cameraConstraint: CameraConstraint.unconstrained(),
+                cameraConstraint: const CameraConstraint.containLatitude(),
                 // Keep the map centered and allow continuous panning
                 interactionOptions: MapUtilities.buildInteractionOptions(
                   canDrag: widget.mapConfig.allowDrag,

@@ -310,9 +310,7 @@ class _ItineraryMapState extends State<ItineraryMap>
               initialZoom: _mapBounds.zoom,
               minZoom: _mapBounds.zoom,
               maxZoom: widget.mapConfig.maxZoom,
-              cameraConstraint: CameraConstraint.containCenter(
-                bounds: _routeBounds,
-              ),
+              cameraConstraint: const CameraConstraint.containLatitude(),
               interactionOptions: MapUtilities.buildInteractionOptions(
                 canDrag: false,
                 canRotate: false,
