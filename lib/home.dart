@@ -6,6 +6,7 @@ import 'package:interactive_map_demo/common/widgets/custom_map_tile_layers.dart'
 import 'package:interactive_map_demo/deck_plan/deck_8_svg_polygon_provider.dart';
 import 'package:interactive_map_demo/deck_plan/models/deck_polygon_data.dart';
 import 'package:interactive_map_demo/deck_plan/models/ship_deck_data.dart';
+import 'package:interactive_map_demo/interactive_map/interactive_map.dart';
 import 'package:interactive_map_demo/itinerary/data/caribbean_cruise.dart'
     as itinerary_data;
 import 'package:interactive_map_demo/itinerary/data/transatlantic_cruise.dart';
@@ -13,6 +14,7 @@ import 'package:interactive_map_demo/itinerary_map/data/caribbean_cruise.dart'
     as itinerary_map_data;
 import 'package:interactive_map_demo/itinerary_map/data/transatlantic_cruise.dart'
     as itinerary_map_transatlantic;
+import 'package:interactive_map_demo/itinerary_map/data/world_samples.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mbtiles/mbtiles.dart';
@@ -21,7 +23,6 @@ import 'common/mbtiles/mbtiles_vector_tile_provider.dart';
 import 'cruise_catalog/cruise_catalog.dart';
 import 'cruise_catalog/data/expanded_ncl_catalog.dart';
 import 'deck_plan/multi_deck_ship_map.dart';
-import 'interactive_map/interactive_map.dart';
 import 'itinerary/cruise_itinerary_page.dart';
 import 'itinerary_map/itinerary_map.dart';
 
@@ -303,6 +304,65 @@ class Home extends StatelessWidget {
                     );
                   },
                 ),
+                ...[
+                  WorldSampleItineraries.alaskaInsidePassage,
+                  WorldSampleItineraries.mediterraneanGreekIsles,
+                  WorldSampleItineraries.northernEuropeBaltic,
+                  WorldSampleItineraries.australiaNewZealand,
+                  WorldSampleItineraries.japanRoundtrip,
+                ].map((cruise) {
+                  return _MapCard(
+                    title: cruise.cruiseName,
+                    subtitle: cruise.description,
+                    icon: Icons.sailing,
+                    imageAsset: cruise.mapImagePath,
+                    progressPercentage: 75,
+                    features: [
+                      FeatureTag.interactiveMap,
+                      FeatureTag.mapRendering,
+                    ],
+                    previewRoute:
+                        cruise.routeCoordinates
+                            .map((c) => LatLng(c[0], c[1]))
+                            .toList(),
+                    onTap: () async {
+                      final MapConfig offlineConfig =
+                          await MapUtilities.buildOfflineVectorMapConfigFromAssets(
+                            baseConfig: const MapConfig(
+                              userAgentPackageName:
+                                  'com.example.interactive_map_demo',
+                              tilesConfig: LocalVectorTilesConfig(
+                                styleAssetPath: 'assets/styles/style.json',
+                              ),
+                            ),
+                            styleAssetPath: 'assets/styles/style.json',
+                            mbtilesAssetPath: 'assets/tiles/planet_map.mbtiles',
+                            createProvider:
+                                (path) => MbTilesVectorTileProvider(
+                                  mbtiles: MbTiles(mbtilesPath: path),
+                                ),
+                            sourceName: 'openmaptiles',
+                          );
+                      if (!context.mounted) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder:
+                              (context) => ItineraryMap(
+                                cruiseTitle: cruise.cruiseName,
+                                itineraryDays: cruise.days,
+                                selectedItineraryDay: cruise.days.first,
+                                mapConfig: offlineConfig,
+                                routeCoordinates:
+                                    cruise.routeCoordinates
+                                        .map((c) => LatLng(c[0], c[1]))
+                                        .toList(),
+                              ),
+                        ),
+                      );
+                    },
+                  );
+                }),
               ],
             ),
             const SizedBox(height: 20),
