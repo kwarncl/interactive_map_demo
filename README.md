@@ -675,3 +675,39 @@ double _getMinScale(Size viewportSize, Size imageSize) {
 ---
 
 **Flutter Version**: ^3.7.2 | **Material Design**: 3 | **Latest**: Cruise Catalog & Sheet Architecture | **License**: Private
+
+## ⚖️ Licensing & Attribution
+
+This project contains mapping assets and code paths that have specific licensing and attribution requirements. Review and comply with the following before shipping commercially:
+
+- Offline vector tiles and style
+  - The bundled style at `assets/styles/style.json` is based on MapTiler's “Basic” style and includes license metadata restricting use to MapTiler Cloud/Server.
+  - If you intend to use this style with self-hosted/offline MBTiles providers (as the app currently does via `LocalVectorTilesConfig`), you must either:
+    - Obtain a MapTiler license that allows using the style outside MapTiler Cloud/Server; or
+    - Replace the style with an open/self-licensed style you are allowed to ship and self-host.
+  - The style has been configured to load `glyphs` and `sprite` from local assets (no Cloud calls), but the license on the style still applies.
+
+- External raster basemaps still referenced in code
+  - OpenStreetMap default tiles in a preview card:
+    - `lib/home.dart` → `https://tile.openstreetmap.org/{z}/{x}/{y}.png`
+    - The official OSM tile server is not permitted for production/commercial app usage. Replace with your own hosted tiles or a permitted provider; or remove this preview.
+  - CARTO Voyager basemap in cruise details page:
+    - `lib/cruise_catalog/pages/cruise_details_page.dart` → `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png`
+    - Using CARTO tiles requires compliance with CARTO terms and visible attribution. Ensure you have the appropriate plan or replace it with self-hosted/offline tiles.
+
+- Mandatory on-screen attribution
+  - You must show visible attribution on all screens that render maps. Include attribution for every data source in use, for example:
+    - OpenStreetMap: “© OpenStreetMap contributors” (link to `https://www.openstreetmap.org/copyright`).
+    - MapTiler style (if retained): “© MapTiler” (link to `https://www.maptiler.com/copyright/`).
+    - OpenMapTiles (if your MBTiles are from OMT): “© OpenMapTiles”.
+    - CARTO (if used): “© CARTO”.
+  - Add an attribution overlay component in your FlutterMap pages to satisfy these requirements.
+
+- API keys and configuration
+  - The app’s offline vector flow does not require a MapTiler account/API key.
+  - Remove any unused API keys from source (e.g., the `mapTilerApiKey` constant in `lib/home.dart`) to avoid confusion or leakage.
+
+- Summary: how to ship safely without a MapTiler account
+  - Use `LocalVectorTilesConfig` with a style you’re licensed to self-host and MBTiles you are licensed to distribute.
+  - Eliminate external raster endpoints (OSM/CARTO) or ensure you have the right to use them and add attribution.
+  - Implement a visible attribution UI for all data sources.
