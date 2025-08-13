@@ -78,12 +78,17 @@ class MapUtilities {
     required bool canDrag,
     required bool canRotate,
     required bool canPinch,
+    bool canDoubleTapZoom = false,
     bool enableMultiFingerGestureRace = false,
   }) {
     int flags = InteractiveFlag.all;
     if (!canDrag) flags &= ~InteractiveFlag.drag;
     if (!canRotate) flags &= ~InteractiveFlag.rotate;
     if (!canPinch) flags &= ~InteractiveFlag.pinchZoom;
+    if (!canDoubleTapZoom) {
+      flags &= ~InteractiveFlag.doubleTapZoom;
+      flags &= ~InteractiveFlag.doubleTapDragZoom;
+    }
 
     return InteractionOptions(
       flags: flags,
