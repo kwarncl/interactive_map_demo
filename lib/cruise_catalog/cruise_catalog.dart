@@ -686,74 +686,70 @@ class _CruiseCatalogState extends State<CruiseCatalog>
       body: Stack(
         children: [
           // Full-screen world map (no padding - users control visibility with sheet)
-          SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: FlutterMap(
-              mapController: _mapController.mapController,
-              options: MapOptions(
-                initialCenter: LatLng(
-                  widget.mapConfig.defaultLocation.latitude,
-                  widget.mapConfig.defaultLocation.longitude,
-                ),
-                initialZoom: widget.mapConfig.initialZoom,
-                minZoom: widget.mapConfig.minZoom,
-                maxZoom: widget.mapConfig.maxZoom,
-                // Allow horizontal wrapping - map repeats at edges
-                cameraConstraint: const CameraConstraint.containLatitude(),
-                // Keep the map centered and allow continuous panning
-                interactionOptions: MapUtilities.buildInteractionOptions(
-                  canDrag: widget.mapConfig.allowDrag,
-                  canRotate: widget.mapConfig.allowRotate,
-                  canPinch: widget.mapConfig.allowPinch,
-                  enableMultiFingerGestureRace: false,
-                  canDoubleTapZoom: true,
-                ),
-                // Real-time zoom tier tracking (recommended approach)
-                onPositionChanged: _onPositionChanged,
-                // Handle map taps to reset sheet height
-                onTap: (tapPosition, point) => _onMapTapped(),
+          FlutterMap(
+            mapController: _mapController.mapController,
+            options: MapOptions(
+              initialCenter: LatLng(
+                widget.mapConfig.defaultLocation.latitude,
+                widget.mapConfig.defaultLocation.longitude,
               ),
-              children: [
-                // Base map tiles (vector with raster fallback)
-                CustomMapTileLayers(mapConfig: widget.mapConfig),
-
-                // Cruise routes overlay with z-order: non-selected first, selected on top
-                ...(_filteredCruises
-                    .where(
-                      (cruise) =>
-                          _selectedCruise?.productId != cruise.productId,
-                    )
-                    .map(
-                      (cruise) => CruiseRouteOverlay(
-                        cruise: cruise,
-                        isSelected: false,
-                        onTap: () => _onCruiseSelected(cruise),
-                        onPortTap: _onPortTapped,
-                        animationController: _animationController,
-                        currentZoomTier: _currentZoomTier,
-                        hasSelectedCruise: _selectedCruise != null,
-                        isRecentlyDeselected:
-                            _recentlyDeselectedCruise?.productId ==
-                            cruise.productId,
-                      ),
-                    )),
-
-                // Render selected cruise last (on top) if one is selected
-                if (_selectedCruise != null)
-                  CruiseRouteOverlay(
-                    cruise: _selectedCruise!,
-                    isSelected: true,
-                    onTap: () => _onCruiseSelected(_selectedCruise!),
-                    onPortTap: _onPortTapped,
-                    animationController: _animationController,
-                    currentZoomTier: _currentZoomTier,
-                    hasSelectedCruise: _selectedCruise != null,
-                    isRecentlyDeselected:
-                        false, // Selected cruise is never recently deselected
-                  ),
-              ],
+              initialZoom: widget.mapConfig.initialZoom,
+              minZoom: widget.mapConfig.minZoom,
+              maxZoom: widget.mapConfig.maxZoom,
+              // Allow horizontal wrapping - map repeats at edges
+              cameraConstraint: const CameraConstraint.containLatitude(),
+              // Keep the map centered and allow continuous panning
+              interactionOptions: MapUtilities.buildInteractionOptions(
+                canDrag: widget.mapConfig.allowDrag,
+                canRotate: widget.mapConfig.allowRotate,
+                canPinch: widget.mapConfig.allowPinch,
+                enableMultiFingerGestureRace: false,
+                canDoubleTapZoom: true,
+              ),
+              // Real-time zoom tier tracking (recommended approach)
+              onPositionChanged: _onPositionChanged,
+              // Handle map taps to reset sheet height
+              onTap: (tapPosition, point) => _onMapTapped(),
             ),
+            children: [
+              // Base map tiles (vector with raster fallback)
+              CustomMapTileLayers(mapConfig: widget.mapConfig),
+          
+              // Cruise routes overlay with z-order: non-selected first, selected on top
+              ...(_filteredCruises
+                  .where(
+                    (cruise) =>
+                        _selectedCruise?.productId != cruise.productId,
+                  )
+                  .map(
+                    (cruise) => CruiseRouteOverlay(
+                      cruise: cruise,
+                      isSelected: false,
+                      onTap: () => _onCruiseSelected(cruise),
+                      onPortTap: _onPortTapped,
+                      animationController: _animationController,
+                      currentZoomTier: _currentZoomTier,
+                      hasSelectedCruise: _selectedCruise != null,
+                      isRecentlyDeselected:
+                          _recentlyDeselectedCruise?.productId ==
+                          cruise.productId,
+                    ),
+                  )),
+          
+              // Render selected cruise last (on top) if one is selected
+              if (_selectedCruise != null)
+                CruiseRouteOverlay(
+                  cruise: _selectedCruise!,
+                  isSelected: true,
+                  onTap: () => _onCruiseSelected(_selectedCruise!),
+                  onPortTap: _onPortTapped,
+                  animationController: _animationController,
+                  currentZoomTier: _currentZoomTier,
+                  hasSelectedCruise: _selectedCruise != null,
+                  isRecentlyDeselected:
+                      false, // Selected cruise is never recently deselected
+                ),
+            ],
           ),
 
           // Top header with greeting and navigation
