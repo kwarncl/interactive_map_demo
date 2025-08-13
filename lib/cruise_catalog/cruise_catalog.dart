@@ -707,6 +707,7 @@ class _CruiseCatalogState extends State<CruiseCatalog>
                   canRotate: widget.mapConfig.allowRotate,
                   canPinch: widget.mapConfig.allowPinch,
                   enableMultiFingerGestureRace: false,
+                  canDoubleTapZoom: true,
                 ),
                 // Real-time zoom tier tracking (recommended approach)
                 onPositionChanged: _onPositionChanged,
