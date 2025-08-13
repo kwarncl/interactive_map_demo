@@ -31,7 +31,6 @@ enum FeatureTag {
   svgRendering('SVG rendering'),
   pngRendering('PNG rendering'),
   mapRendering('Map rendering'),
-  globalCatalog('Worldwide map'),
   comingSoon('Coming soon');
 
   const FeatureTag(this.label);
@@ -392,7 +391,6 @@ class Home extends StatelessWidget {
                   imageAsset: 'assets/images/map.jpg',
                   progressPercentage: 70,
                   features: [
-                    FeatureTag.globalCatalog,
                     FeatureTag.interactiveMap,
                     FeatureTag.mapRendering,
                   ],
