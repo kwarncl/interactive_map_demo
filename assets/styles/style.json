@@ -3298,6 +3298,11 @@
           "admin_level",
           3,
           4
+        ],
+        [
+          "!=",
+          "maritime",
+          1
         ]
       ],
       "layout": {
@@ -3344,6 +3349,11 @@
         [
           "!has",
           "claimed_by"
+        ],
+        [
+          "!=",
+          "maritime",
+          1
         ]
       ],
       "layout": {
@@ -3396,6 +3406,11 @@
           "==",
           "admin_level",
           2
+        ],
+        [
+          "!=",
+          "maritime",
+          1
         ]
       ],
       "layout": {
