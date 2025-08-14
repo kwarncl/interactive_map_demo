@@ -1,9 +1,6 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:interactive_map_demo/common/widgets/custom_polyline_layer.dart';
-import 'package:latlong2/latlong.dart';
 
 import '../models/cruise_product.dart';
 import '../models/cruise_route.dart';
@@ -56,13 +53,13 @@ class CruiseRouteOverlay extends StatelessWidget {
       curve: Curves.easeInOut,
       child: Stack(
         children: [
-          // Clickable route polyline with zoom-based styling (curved)
+          // Clickable route polyline with zoom-based styling (straight)
           GestureDetector(
             onTap: onTap,
             child: PolylineLayer(
               polylines: [
                 Polyline(
-                  points: _curvedRoutePoints,
+                  points: cruise.route.coordinates,
                   strokeWidth: _strokeWidth + 4.0,
                   color: Colors.transparent,
                 ),
@@ -70,9 +67,9 @@ class CruiseRouteOverlay extends StatelessWidget {
             ),
           ),
 
-          // Visible curved route polyline via custom layer
+          // Visible straight route polyline via custom layer
           CustomPolylineLayer(
-            points: _curvedRoutePoints,
+            points: cruise.route.coordinates,
             strokeWidth: _strokeWidth,
             color:
                 isSelected
@@ -86,118 +83,6 @@ class CruiseRouteOverlay extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// Create gently curved route between cruise waypoints
-  List<LatLng> get _curvedRoutePoints {
-    if (cruise.route.waypoints.length < 2) return cruise.route.coordinates;
-
-    // Create simple curved path between waypoints
-    final List<LatLng> curvedPoints = [];
-    final waypoints =
-        cruise.route.waypoints.map((port) => port.latLng).toList();
-
-    for (int i = 0; i < waypoints.length - 1; i++) {
-      final start = waypoints[i];
-      final end = waypoints[i + 1];
-
-      // Add the starting point
-      curvedPoints.add(start);
-
-      // Add gentle curve between waypoints
-      final intermediatePoints = _calculateCurvePoints(start, end);
-      curvedPoints.addAll(intermediatePoints);
-    }
-
-    // Add the final point
-    curvedPoints.add(waypoints.last);
-
-    return curvedPoints;
-  }
-
-  /// Calculate intermediate points for a gentle curve between two points
-  List<LatLng> _calculateCurvePoints(LatLng start, LatLng end) {
-    const int numPoints = 8; // Number of intermediate points
-    final List<LatLng> points = [];
-
-    // Calculate the midpoint
-    final midLat = (start.latitude + end.latitude) / 2;
-    final midLng = (start.longitude + end.longitude) / 2;
-
-    // Calculate perpendicular offset for curve (smaller for shorter distances)
-    final distance = _calculateDistance(start, end);
-    final curveOffset = math.min(
-      distance * 0.001,
-      2.0,
-    ); // Scale curve with distance, max 2 degrees offset
-
-    // Create control point perpendicular to the line
-    final bearing = _calculateBearing(start, end);
-    final perpBearing =
-        (bearing + 90) * (math.pi / 180); // Perpendicular bearing in radians
-
-    final controlLat = midLat + (curveOffset * math.cos(perpBearing));
-    final controlLng = midLng + (curveOffset * math.sin(perpBearing));
-    final controlPoint = LatLng(controlLat, controlLng);
-
-    // Generate points along quadratic bezier curve
-    for (int i = 1; i < numPoints; i++) {
-      final t = i / numPoints;
-      final point = _quadraticBezier(start, controlPoint, end, t);
-      points.add(point);
-    }
-
-    return points;
-  }
-
-  /// Calculate distance between two points in kilometers using Haversine formula
-  double _calculateDistance(LatLng point1, LatLng point2) {
-    const double earthRadius = 6371; // km
-
-    final lat1Rad = point1.latitude * (math.pi / 180);
-    final lat2Rad = point2.latitude * (math.pi / 180);
-    final deltaLatRad = (point2.latitude - point1.latitude) * (math.pi / 180);
-    final deltaLngRad = (point2.longitude - point1.longitude) * (math.pi / 180);
-
-    final a =
-        math.sin(deltaLatRad / 2) * math.sin(deltaLatRad / 2) +
-        math.cos(lat1Rad) *
-            math.cos(lat2Rad) *
-            math.sin(deltaLngRad / 2) *
-            math.sin(deltaLngRad / 2);
-
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-
-    return earthRadius * c;
-  }
-
-  /// Calculate bearing between two points in degrees
-  double _calculateBearing(LatLng start, LatLng end) {
-    final startLat = start.latitude * (math.pi / 180);
-    final startLng = start.longitude * (math.pi / 180);
-    final endLat = end.latitude * (math.pi / 180);
-    final endLng = end.longitude * (math.pi / 180);
-
-    final dLng = endLng - startLng;
-    final y = math.sin(dLng) * math.cos(endLat);
-    final x =
-        math.cos(startLat) * math.sin(endLat) -
-        math.sin(startLat) * math.cos(endLat) * math.cos(dLng);
-
-    return math.atan2(y, x) * (180 / math.pi);
-  }
-
-  /// Calculate point on quadratic bezier curve
-  LatLng _quadraticBezier(LatLng p0, LatLng p1, LatLng p2, double t) {
-    final lat =
-        math.pow(1 - t, 2) * p0.latitude +
-        2 * (1 - t) * t * p1.latitude +
-        math.pow(t, 2) * p2.latitude;
-    final lng =
-        math.pow(1 - t, 2) * p0.longitude +
-        2 * (1 - t) * t * p1.longitude +
-        math.pow(t, 2) * p2.longitude;
-    return LatLng(lat, lng);
   }
 
   /// Get appropriate icon for port based on position
