@@ -21,7 +21,7 @@ import 'package:mbtiles/mbtiles.dart';
 
 import 'common/mbtiles/mbtiles_vector_tile_provider.dart';
 import 'cruise_catalog/cruise_catalog.dart';
-import 'cruise_catalog/data/expanded_ncl_catalog.dart';
+import 'cruise_catalog/data/ncl_cruise_catalog.dart';
 import 'deck_plan/multi_deck_ship_map.dart';
 import 'itinerary/cruise_itinerary_page.dart';
 import 'itinerary_map/itinerary_map.dart';
@@ -485,7 +485,7 @@ class Home extends StatelessWidget {
                         builder:
                             (context) => CruiseCatalog(
                               title: 'NCL Cruise Catalog',
-                              cruises: ExpandedNCLCatalog.allCruises,
+                              cruises: NCLCruiseCatalog.allCruises,
                               mapConfig: offlineConfig,
                             ),
                       ),

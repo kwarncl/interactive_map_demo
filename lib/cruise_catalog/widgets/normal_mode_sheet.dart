@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../data/expanded_ncl_catalog.dart';
+import '../data/ncl_cruise_catalog.dart';
 import '../models/cruise_category.dart';
 import '../models/cruise_product.dart';
 import 'cruise_search_bar.dart';
@@ -473,7 +473,9 @@ class NormalModeContent extends StatelessWidget {
   Widget _buildCruiseListings(ThemeData theme) {
     // Get featured cruises that are currently visible
     final featuredCruises =
-        ExpandedNCLCatalog.getFeaturedCruises()
+        NCLCruiseCatalog.allCruises
+            .take(8)
+            .toList()
             .where(
               (featured) =>
                   cruises.any((c) => c.productId == featured.productId),
