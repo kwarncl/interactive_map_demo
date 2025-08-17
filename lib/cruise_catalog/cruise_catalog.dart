@@ -7,8 +7,11 @@ import 'package:interactive_map_demo/common/map_utilities.dart';
 import 'package:interactive_map_demo/common/widgets/custom_draggable_sheet.dart';
 import 'package:interactive_map_demo/common/widgets/custom_map_tile_layers.dart';
 import 'package:interactive_map_demo/common/widgets/custom_sticky_header_delegate.dart';
+import 'package:interactive_map_demo/cruise_catalog/widgets/cruise_details_mode_header.dart';
 import 'package:interactive_map_demo/cruise_catalog/widgets/cruise_details_mode_sheet.dart';
+import 'package:interactive_map_demo/cruise_catalog/widgets/normal_mode_header.dart';
 import 'package:interactive_map_demo/cruise_catalog/widgets/normal_mode_sheet.dart';
+import 'package:interactive_map_demo/cruise_catalog/widgets/search_mode_header.dart';
 import 'package:interactive_map_demo/cruise_catalog/widgets/search_mode_sheet.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -113,13 +116,19 @@ class _CruiseCatalogState extends State<CruiseCatalog>
   /// Get filtered cruises based on categories, search, and zoom tier
   List<CruiseProduct> get _filteredCruises {
     var cruises =
-        widget.cruises
-            .where(
-              (cruise) => _visibleCategories.contains(
-                cruise.route.region?.toLowerCase(),
-              ),
-            )
-            .toList();
+        widget.cruises.where((cruise) {
+          // Map cruise region to category ID for proper filtering
+          final cruiseRegion = cruise.route.region?.toLowerCase();
+          if (cruiseRegion == null) return false;
+
+          // Find matching category by region
+          final matchingCategory = CruiseCategories.all.firstWhere(
+            (category) => category.region?.toLowerCase() == cruiseRegion,
+            orElse: () => CruiseCategories.caribbean, // fallback
+          );
+
+          return _visibleCategories.contains(matchingCategory.categoryId);
+        }).toList();
 
     // Apply search filter if active
     if (_searchQuery.isNotEmpty) {
@@ -156,9 +165,18 @@ class _CruiseCatalogState extends State<CruiseCatalog>
     if (_recentlyDeselectedCruise != null) {
       final recentlyDeselected = _recentlyDeselectedCruise!;
       // Only add if it matches category and search filters, and isn't already included
-      final matchesCategory = _visibleCategories.contains(
-        recentlyDeselected.route.region?.toLowerCase(),
-      );
+      final matchesCategory = () {
+        final cruiseRegion = recentlyDeselected.route.region?.toLowerCase();
+        if (cruiseRegion == null) return false;
+
+        // Find matching category by region
+        final matchingCategory = CruiseCategories.all.firstWhere(
+          (category) => category.region?.toLowerCase() == cruiseRegion,
+          orElse: () => CruiseCategories.caribbean, // fallback
+        );
+
+        return _visibleCategories.contains(matchingCategory.categoryId);
+      }();
       final matchesSearch =
           _searchQuery.isEmpty ||
           () {
@@ -415,6 +433,15 @@ class _CruiseCatalogState extends State<CruiseCatalog>
 
     _animationController.reverse();
 
+    // Reset scroll position to top
+    if (_sheetScrollController.hasClients) {
+      _sheetScrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+      );
+    }
+
     // Animate sheet height based on current mode with faster timing
     final targetHeight =
         _showSearch
@@ -497,12 +524,12 @@ class _CruiseCatalogState extends State<CruiseCatalog>
 
   /// Handle search query changes
   void _onSearchChanged(String query) {
+    // _sheetController.
     setState(() {
       _searchQuery = query;
       // Clear recently deselected cruise when user starts searching
       if (query.isNotEmpty && _recentlyDeselectedCruise != null) {
         _recentlyDeselectedCruise = null;
-        debugPrint('Cleared recently deselected cruise due to search');
       }
     });
   }
@@ -714,12 +741,11 @@ class _CruiseCatalogState extends State<CruiseCatalog>
             children: [
               // Base map tiles (vector with raster fallback)
               CustomMapTileLayers(mapConfig: widget.mapConfig),
-          
+
               // Cruise routes overlay with z-order: non-selected first, selected on top
               ...(_filteredCruises
                   .where(
-                    (cruise) =>
-                        _selectedCruise?.productId != cruise.productId,
+                    (cruise) => _selectedCruise?.productId != cruise.productId,
                   )
                   .map(
                     (cruise) => CruiseRouteOverlay(
@@ -735,7 +761,7 @@ class _CruiseCatalogState extends State<CruiseCatalog>
                           cruise.productId,
                     ),
                   )),
-          
+
               // Render selected cruise last (on top) if one is selected
               if (_selectedCruise != null)
                 CruiseRouteOverlay(
@@ -810,44 +836,50 @@ class _CruiseCatalogState extends State<CruiseCatalog>
             minChildSize: SheetPosition.hidden.value,
             maxChildSize: SheetPosition.fullScreen.value,
             slivers: [
-              // Persistent header based on current mode
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: CustomStickyHeaderDelegate(
-                  minHeight: 80.0,
-                  maxHeight: 80.0,
-                  child: switch (_currentSheetMode) {
-                    SheetMode.search => SearchModeContent(
+              // Persistent header based on current model
+              switch (_currentSheetMode) {
+                SheetMode.search => SliverPersistentHeader(
+                  pinned: true,
+                  delegate: CustomStickyHeaderDelegate(
+                    minHeight: 70.0,
+                    maxHeight: 70.0,
+                    child: SearchModeHeader(
                       cruises: _filteredCruises,
-                      searchQuery: _searchQuery,
                       onCruiseSelected: _onCruiseSelected,
                       onSearchChanged: _onSearchChanged,
                       onSearchToggled: _onSearchToggled,
                       searchController: _searchController,
                       searchFocusNode: _searchFocusNode,
-                    ).buildHeader(Theme.of(context)),
-                    SheetMode.cruiseDetails => CruiseDetailsModeContent(
-                      selectedCruise: _selectedCruise,
-                      cruises: _filteredCruises,
-                      onCruiseSelected: _onCruiseSelected,
-                      onClose: _closeCruiseDetails,
-                    ).buildHeader(context),
-                    SheetMode.normal => NormalModeContent(
-                      cruises: _filteredCruises,
-                      selectedCruise: _selectedCruise,
-                      visibleCategories: _visibleCategories,
-                      showSearch: _showSearch,
-                      searchController: _searchController,
-                      searchFocusNode: _searchFocusNode,
-                      onCruiseSelected: _onCruiseSelected,
-                      onCategoryToggled: _onCategoryToggled,
-                      onSearchChanged: _onSearchChanged,
-                      onSearchToggled: _onSearchToggled,
-                      onMapReset: _resetMapView,
-                    ).buildHeader(Theme.of(context)),
-                  },
+                    ),
+                  ),
                 ),
-              ),
+                SheetMode.cruiseDetails => SliverPersistentHeader(
+                  pinned: true,
+                  delegate: CustomStickyHeaderDelegate(
+                    minHeight: 70.0,
+                    maxHeight: 70.0,
+                    child: CruiseDetailsModeHeader(
+                      cruise: _selectedCruise!,
+                      onClose: _closeCruiseDetails,
+                    ),
+                  ),
+                ),
+                SheetMode.normal => SliverPersistentHeader(
+                  pinned: true,
+                  delegate: CustomStickyHeaderDelegate(
+                    minHeight: 70.0,
+                    maxHeight: 70.0,
+                    child: NormalModeHeader(
+                      showSearch: _showSearch,
+                      cruises: _filteredCruises,
+                      onMapReset: _resetMapView,
+                      onSearchToggled: _onSearchToggled,
+                      onCruiseSelected: _onCruiseSelected,
+                      onSearchChanged: _onSearchChanged,
+                    ),
+                  ),
+                ),
+              },
 
               // Content based on current mode
               SliverPadding(
@@ -864,7 +896,7 @@ class _CruiseCatalogState extends State<CruiseCatalog>
                       searchFocusNode: _searchFocusNode,
                     ),
                     SheetMode.cruiseDetails => CruiseDetailsModeContent(
-                      selectedCruise: _selectedCruise,
+                      selectedCruise: _selectedCruise!,
                       cruises: _filteredCruises,
                       onCruiseSelected: _onCruiseSelected,
                       onClose: _closeCruiseDetails,
@@ -892,5 +924,3 @@ class _CruiseCatalogState extends State<CruiseCatalog>
     );
   }
 }
-
-/// Sticky header delegate

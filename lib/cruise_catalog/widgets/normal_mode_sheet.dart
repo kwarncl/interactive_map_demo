@@ -4,10 +4,9 @@ import 'package:flutter/services.dart';
 import '../data/ncl_cruise_catalog.dart';
 import '../models/cruise_category.dart';
 import '../models/cruise_product.dart';
-import 'cruise_search_bar.dart';
 
 /// Normal mode content widget (without CustomScrollView)
-class NormalModeContent extends StatelessWidget {
+class NormalModeContent extends StatefulWidget {
   const NormalModeContent({
     super.key,
     required this.cruises,
@@ -36,317 +35,185 @@ class NormalModeContent extends StatelessWidget {
   final VoidCallback onMapReset;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  State<NormalModeContent> createState() => _NormalModeContentState();
+}
 
+class _NormalModeContentState extends State<NormalModeContent> {
+  late final List<CruiseProduct> featuredCruises;
+
+  @override
+  void initState() {
+    super.initState();
+    featuredCruises =
+        NCLCruiseCatalog.allCruises
+            .take(8)
+            .toList()
+            .where(
+              (featured) =>
+                  widget.cruises.any((c) => c.productId == featured.productId),
+            )
+            .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Destination chips
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: _buildDestinationChips(theme),
-        ),
-        const SizedBox(height: 16),
-
-        // Selected cruise info or cruise listings (featured + all)
-        if (selectedCruise != null) ...[
-          _buildEnhancedSelectedCruiseCard(selectedCruise!, theme),
-        ] else ...[
-          _buildCruiseListings(theme),
-        ],
-      ],
-    );
-  }
-
-  /// Build the sticky header section
-  Widget buildHeader(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-      decoration: BoxDecoration(color: theme.colorScheme.surface),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with title and controls
-          Row(
-            children: [
-              // Enhanced title with icon
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.colorScheme.primary,
-                            theme.colorScheme.primary.withValues(alpha: 0.8),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.explore, size: 20, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Explore Cruises',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        Text(
-                          'Find your perfect voyage',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Enhanced control buttons
-              Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Legend label
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                spacing: 8,
                 children: [
-                  // Map reset button with enhanced design
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.surfaceContainerHighest,
-                          theme.colorScheme.surfaceContainer,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.shadowColor.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: onMapReset,
-                      icon: const Icon(Icons.public),
-                      tooltip: 'Reset to Miami View',
-                      style: IconButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                  Icon(
+                    Icons.palette,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-
-                  const SizedBox(width: 8),
-
-                  // Enhanced search toggle button
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors:
-                            showSearch
-                                ? [
-                                  theme.colorScheme.primary,
-                                  theme.colorScheme.primary.withValues(
-                                    alpha: 0.8,
-                                  ),
-                                ]
-                                : [
-                                  theme.colorScheme.surfaceContainerHighest,
-                                  theme.colorScheme.surfaceContainer,
-                                ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              showSearch
-                                  ? theme.colorScheme.primary.withValues(
-                                    alpha: 0.3,
-                                  )
-                                  : theme.shadowColor.withValues(alpha: 0.1),
-                          blurRadius: showSearch ? 8 : 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: onSearchToggled,
-                      icon: Icon(
-                        showSearch ? Icons.close : Icons.search,
-                        color:
-                            showSearch
-                                ? Colors.white
-                                : theme.colorScheme.onSurfaceVariant,
-                      ),
-                      tooltip: showSearch ? 'Close Search' : 'Search Cruises',
-                      style: IconButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                  Text(
+                    'Cruise Destinations',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-
-          // Enhanced search bar with animation
-          if (showSearch) ...[
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.5,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: CruiseSearchBar(
-                  cruises: cruises,
-                  onCruiseSelected: onCruiseSelected,
-                  onFilterChanged: onSearchChanged,
-                ),
-              ),
             ),
-          ],
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 8),
 
-  /// Build destination chips that serve as map legend
-  Widget _buildDestinationChips(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Legend label
-        Row(
-          children: [
-            Icon(
-              Icons.palette,
-              size: 16,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Cruise Destinations',
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        // Destination chips
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children:
-              CruiseCategories.all.map((category) {
-                final isSelected = visibleCategories.contains(
-                  category.categoryId,
-                );
-                return Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      if (isSelected)
-                        BoxShadow(
-                          color: category.color.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
+            // Destination chips
+            SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 6,
+                children:
+                    CruiseCategories.all.map((category) {
+                      final isSelected = widget.visibleCategories.contains(
+                        category.categoryId,
+                      );
+                      return Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            if (isSelected)
+                              BoxShadow(
+                                color: category.color.withValues(alpha: 0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
-                  child: FilterChip(
-                    selected: isSelected,
-                    elevation: isSelected ? 2 : 0,
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: category.color,
-                            shape: BoxShape.circle,
+                        child: FilterChip(
+                          selected: isSelected,
+                          elevation: isSelected ? 2 : 0,
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: category.color,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                category.name,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          category.name,
-                          style: theme.textTheme.labelSmall?.copyWith(
+                          onSelected: (selected) {
+                            HapticFeedback.selectionClick();
+                            widget.onCategoryToggled(category.categoryId);
+                          },
+                          backgroundColor: category.color.withValues(
+                            alpha: 0.08,
+                          ),
+                          selectedColor: category.color.withValues(alpha: 0.15),
+                          checkmarkColor: category.color,
+                          labelStyle: Theme.of(
+                            context,
+                          ).textTheme.labelSmall?.copyWith(
+                            color:
+                                isSelected
+                                    ? category.color
+                                    : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
-                            fontSize: 11,
                           ),
+                          side: BorderSide(
+                            color: category.color.withValues(
+                              alpha: isSelected ? 0.5 : 0.3,
+                            ),
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
                         ),
-                      ],
-                    ),
-                    onSelected: (selected) {
-                      HapticFeedback.selectionClick();
-                      onCategoryToggled(category.categoryId);
-                    },
-                    backgroundColor: category.color.withValues(alpha: 0.08),
-                    selectedColor: category.color.withValues(alpha: 0.15),
-                    checkmarkColor: category.color,
-                    labelStyle: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          isSelected
-                              ? category.color
-                              : theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    side: BorderSide(
-                      color: category.color.withValues(
-                        alpha: isSelected ? 0.5 : 0.3,
-                      ),
-                      width: 1,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                );
-              }).toList(),
+                      );
+                    }).toList(),
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 16),
+
+        // Selected cruise info or cruise listings (featured + all)
+        if (widget.selectedCruise != null)
+          _SelectedCruiseCard(cruise: widget.selectedCruise!)
+        else
+          _CruiseListings(
+            cruises: widget.cruises,
+            featuredCruises: featuredCruises,
+            onCruiseSelected: widget.onCruiseSelected,
+          ),
       ],
     );
   }
+}
 
-  /// Build enhanced selected cruise card (simplified for normal mode)
-  Widget _buildEnhancedSelectedCruiseCard(
-    CruiseProduct cruise,
-    ThemeData theme,
-  ) {
+/// Selected cruise card widget
+class _SelectedCruiseCard extends StatelessWidget {
+  const _SelectedCruiseCard({required this.cruise});
+
+  final CruiseProduct cruise;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primaryContainer,
-            theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
+            Theme.of(context).colorScheme.primaryContainer,
+            Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.7),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.2),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -362,7 +229,7 @@ class NormalModeContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -378,17 +245,20 @@ class NormalModeContent extends StatelessWidget {
                     children: [
                       Text(
                         'Selected Cruise',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer
                               .withValues(alpha: 0.8),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
                         cruise.title,
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ],
@@ -405,16 +275,19 @@ class NormalModeContent extends StatelessWidget {
                     children: [
                       Text(
                         'Ship',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer
                               .withValues(alpha: 0.7),
                         ),
                       ),
                       Text(
                         cruise.shipName,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ],
@@ -426,16 +299,19 @@ class NormalModeContent extends StatelessWidget {
                     children: [
                       Text(
                         'Duration',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer
                               .withValues(alpha: 0.7),
                         ),
                       ),
                       Text(
                         cruise.duration,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ],
@@ -446,16 +322,16 @@ class NormalModeContent extends StatelessWidget {
                   children: [
                     Text(
                       'From',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer.withValues(
-                          alpha: 0.7,
-                        ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
                       ),
                     ),
                     Text(
                       '\$${cruise.pricing.startingPrice}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -468,21 +344,22 @@ class NormalModeContent extends StatelessWidget {
       ),
     );
   }
+}
 
-  /// Build cruise listings with featured cruises first, then all cruises
-  Widget _buildCruiseListings(ThemeData theme) {
-    // Get featured cruises that are currently visible
-    final featuredCruises =
-        NCLCruiseCatalog.allCruises
-            .take(8)
-            .toList()
-            .where(
-              (featured) =>
-                  cruises.any((c) => c.productId == featured.productId),
-            )
-            .toList();
+/// Cruise listings widget
+class _CruiseListings extends StatelessWidget {
+  const _CruiseListings({
+    required this.cruises,
+    required this.featuredCruises,
+    required this.onCruiseSelected,
+  });
 
-    // Get all non-featured cruises
+  final List<CruiseProduct> cruises;
+  final List<CruiseProduct> featuredCruises;
+  final ValueChanged<CruiseProduct> onCruiseSelected;
+
+  @override
+  Widget build(BuildContext context) {
     final featuredIds = featuredCruises.map((c) => c.productId).toSet();
     final nonFeaturedCruises =
         cruises
@@ -494,49 +371,65 @@ class NormalModeContent extends StatelessWidget {
       children: [
         // Featured Cruises Section (if any)
         if (featuredCruises.isNotEmpty) ...[
-          _buildSectionHeader(
-            theme,
+          _SectionHeader(
             title: 'Featured Cruises',
             subtitle: 'Popular destinations to explore',
             icon: Icons.star,
-            iconColor: theme.colorScheme.onSecondaryContainer,
-            iconBackground: theme.colorScheme.secondaryContainer,
+            iconColor: Theme.of(context).colorScheme.onSecondaryContainer,
+            iconBackground: Theme.of(context).colorScheme.secondaryContainer,
           ),
           const SizedBox(height: 16),
           ...featuredCruises.map(
-            (cruise) => _buildCruiseCard(cruise, theme, isFeatured: true),
+            (cruise) => _CruiseCard(
+              cruise: cruise,
+              isFeatured: true,
+              onCruiseSelected: onCruiseSelected,
+            ),
           ),
           const SizedBox(height: 24),
         ],
 
         // All Cruises Section (if any non-featured cruises exist)
         if (nonFeaturedCruises.isNotEmpty) ...[
-          _buildSectionHeader(
-            theme,
+          _SectionHeader(
             title: 'All Cruises',
             subtitle: '${nonFeaturedCruises.length} voyages available',
             icon: Icons.explore,
-            iconColor: theme.colorScheme.onTertiaryContainer,
-            iconBackground: theme.colorScheme.tertiaryContainer,
+            iconColor: Theme.of(context).colorScheme.onTertiaryContainer,
+            iconBackground: Theme.of(context).colorScheme.tertiaryContainer,
           ),
           const SizedBox(height: 16),
           ...nonFeaturedCruises.map(
-            (cruise) => _buildCruiseCard(cruise, theme, isFeatured: false),
+            (cruise) => _CruiseCard(
+              cruise: cruise,
+              isFeatured: false,
+              onCruiseSelected: onCruiseSelected,
+            ),
           ),
         ],
       ],
     );
   }
+}
 
-  /// Build section header for cruise categories
-  Widget _buildSectionHeader(
-    ThemeData theme, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBackground,
-  }) {
+/// Section header widget
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBackground,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBackground;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -556,15 +449,15 @@ class NormalModeContent extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -574,13 +467,22 @@ class NormalModeContent extends StatelessWidget {
       ),
     );
   }
+}
 
-  /// Build individual cruise card
-  Widget _buildCruiseCard(
-    CruiseProduct cruise,
-    ThemeData theme, {
-    required bool isFeatured,
-  }) {
+/// Individual cruise card widget
+class _CruiseCard extends StatelessWidget {
+  const _CruiseCard({
+    required this.cruise,
+    required this.isFeatured,
+    required this.onCruiseSelected,
+  });
+
+  final CruiseProduct cruise;
+  final bool isFeatured;
+  final ValueChanged<CruiseProduct> onCruiseSelected;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       decoration: BoxDecoration(
@@ -588,28 +490,34 @@ class NormalModeContent extends StatelessWidget {
           colors:
               isFeatured
                   ? [
-                    theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    theme.colorScheme.surface,
+                    Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    Theme.of(context).colorScheme.surface,
                   ]
                   : [
-                    theme.colorScheme.surface,
-                    theme.colorScheme.surfaceContainerLowest,
+                    Theme.of(context).colorScheme.surface,
+                    Theme.of(context).colorScheme.surfaceContainerLowest,
                   ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color:
               isFeatured
-                  ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                  : theme.colorScheme.outline.withValues(alpha: 0.1),
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                  : Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.1),
           width: isFeatured ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
             color:
                 isFeatured
-                    ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                    : theme.shadowColor.withValues(alpha: 0.08),
+                    ? Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1)
+                    : Theme.of(context).shadowColor.withValues(alpha: 0.08),
             blurRadius: isFeatured ? 12 : 8,
             offset: const Offset(0, 2),
           ),
@@ -646,9 +554,8 @@ class NormalModeContent extends StatelessWidget {
                           Expanded(
                             child: Text(
                               cruise.title,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ),
                           if (isFeatured) ...[
@@ -659,21 +566,23 @@ class NormalModeContent extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.1,
-                                ),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: theme.colorScheme.primary.withValues(
-                                    alpha: 0.3,
-                                  ),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.3),
                                   width: 0.5,
                                 ),
                               ),
                               child: Text(
                                 'Featured',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.primary,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 10,
                                 ),
@@ -684,8 +593,8 @@ class NormalModeContent extends StatelessWidget {
                       ),
                       Text(
                         cruise.duration,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -693,8 +602,8 @@ class NormalModeContent extends StatelessWidget {
                 ),
                 Text(
                   '\$${cruise.pricing.startingPrice}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
