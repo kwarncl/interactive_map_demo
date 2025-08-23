@@ -6,6 +6,7 @@ import 'package:interactive_map_demo/common/widgets/custom_map_tile_layers.dart'
 import 'package:interactive_map_demo/deck_plan/deck_8_svg_polygon_provider.dart';
 import 'package:interactive_map_demo/deck_plan/models/deck_polygon_data.dart';
 import 'package:interactive_map_demo/deck_plan/models/ship_deck_data.dart';
+import 'package:interactive_map_demo/digital_key/digital_key_page.dart';
 import 'package:interactive_map_demo/interactive_map/interactive_map.dart';
 import 'package:interactive_map_demo/itinerary/data/caribbean_cruise.dart'
     as itinerary_data;
@@ -48,6 +49,29 @@ class Home extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Interactive Maps'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.badge),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => const DigitalKeyPage(),
+                ),
+              );
+            },
+            tooltip: 'Digital Key',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
