@@ -1,6 +1,8 @@
-# Interactive Map Demo (AI generated readme file)
+# Interactive Map Demo
 
 A comprehensive Flutter application showcasing advanced interactive map implementations with multiple use cases including cruise destinations, ship deck plans, route-based itinerary maps, cruise catalog system, countdown widgets, and digital stateroom keys.
+
+> **⚠️ AI-Generated**: This project was primarily generated using AI tools (Cursor with Claude Sonnet 4 and GPT-5). Please proceed with caution and thoroughly review all code before using in production environments.
 
 ## 📋 Table of Contents
 
