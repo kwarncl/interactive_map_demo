@@ -6,22 +6,20 @@ A comprehensive Flutter application showcasing advanced interactive map implemen
 
 ## 📋 Table of Contents
 
-- [Features](#features)
+- [Features](#-features)
   - [Interactive Destination Map (Great Stirrup Cay)](#️-interactive-destination-map-great-stirrup-cay)
   - [Cruise Itinerary Map (Multiple Routes)](#️-cruise-itinerary-map-multiple-routes---backend-driven)
   - [Cruise Catalog Map](#️-cruise-catalog-map)
   - [Cruise Countdown Widget](#️-cruise-countdown-widget)
   - [Multi-Deck Ship Map (Norwegian Aqua)](#️-multi-deck-ship-map-norwegian-aqua)
   - [Digital Stateroom Key](#️-digital-stateroom-key)
-- [Technical Details](#technical-details)
+- [Technical Details](#-technical-details)
   - [Dual Map Architecture: Image-Based vs Geographic Coordinates](#dual-map-architecture-image-based-vs-geographic-coordinates)
   - [Backend Integration & Data Flow](#backend-integration--data-flow)
   - [Offline Vector Tiles & Performance Engineering](#offline-vector-tiles--performance-engineering)
-  - [iOS Home Widget System](#ios-home-widget-system)
-  - [Digital Key & BLE Integration](#digital-key--ble-integration)
-- [Project Structure](#project-structure)
+- [Project Structure](#-project-structure)
 - [Licensing & Attribution](#️-licensing--attribution)
-- [AI Digest](#ai-digest)
+- [AI Digest](#-ai-digest)
 
 ## ✨ Features
 
