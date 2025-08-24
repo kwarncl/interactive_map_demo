@@ -426,33 +426,41 @@ lib/
 
 This project uses **fully offline mapping** with local vector tiles and styles. Review the following licensing requirements before shipping commercially:
 
-- Offline vector tiles and style
-  - The bundled style at `assets/styles/style.json` is based on MapTiler's “Basic” style and includes license metadata restricting use to MapTiler Cloud/Server.
-  - If you intend to use this style with self-hosted/offline MBTiles providers (as the app currently does via `LocalVectorTilesConfig`), you must either:
-    - Obtain a MapTiler license that allows using the style outside MapTiler Cloud/Server; or
-    - Replace the style with an open/self-licensed style you are allowed to ship and self-host.
-  - The style has been configured to load `glyphs` and `sprite` from local assets (no Cloud calls), but the license on the style still applies.
+### **Style License: OSM Liberty (BSD License)**
+- **Style**: `assets/styles/style.json` uses **OSM Liberty** style (not MapTiler Basic)
+- **License**: BSD License (derived from Mapbox Open Styles)
+- **Usage**: ✅ **FREE** for commercial use with attribution
+- **Requirements**: Must retain copyright notice and attribution
 
-- MBTiles Data Source
-  - **OpenMapTiles**: The `assets/tiles/planet_map.mbtiles` file contains vector tile data that requires proper licensing.
-  - **Attribution Required**: If using OpenMapTiles data, you must include "© OpenMapTiles" attribution on all map screens.
-  - **Alternative Sources**: Consider using other open-source tile providers or creating your own tile sets.
+### **Data Source: OpenMapTiles (CC-BY 4.0)**
+- **Data**: `assets/tiles/planet_map.mbtiles` contains OpenMapTiles vector data
+- **License**: Creative Commons Attribution 4.0 (CC-BY 4.0)
+- **Usage**: ✅ **FREE** for commercial use with attribution
+- **Requirements**: Must credit OpenMapTiles and OpenStreetMap contributors
 
-- Mandatory on-screen attribution
-  - You must show visible attribution on all screens that render maps. Include attribution for every data source in use, for example:
-    - OpenStreetMap: “© OpenStreetMap contributors” (link to `https://www.openstreetmap.org/copyright`).
-    - MapTiler style (if retained): “© MapTiler” (link to `https://www.maptiler.com/copyright/`).
-    - OpenMapTiles (if your MBTiles are from OMT): “© OpenMapTiles”.
-    - CARTO (if used): “© CARTO”.
-  - Add an attribution overlay component in your FlutterMap pages to satisfy these requirements.
+### **Required Attribution (MANDATORY)**
+You **MUST** display the following attribution on all map screens:
 
-- API keys and configuration
-  - The app’s offline vector flow does not require a MapTiler account/API key.
+```
+© OpenMapTiles (https://openmaptiles.org/)
+© OpenStreetMap contributors (https://www.openstreetmap.org/copyright)
+```
 
-- Summary: Shipping Safely
-  - Use `LocalVectorTilesConfig` with a style you’re licensed to self-host and MBTiles you are licensed to distribute.
-  - Consider replacing MapTiler style with an open-source alternative for complete freedom
-  - Implement a visible attribution UI for all data sources.
+### **Implementation Required**
+Add an attribution overlay to your FlutterMap widgets:
+
+```dart
+FlutterMap(
+  // ... your existing map configuration
+  children: [
+    // ... your existing layers
+    AttributionWidget.defaultWidget(
+      source: '© OpenMapTiles (https://openmaptiles.org/) © OpenStreetMap contributors (https://www.openstreetmap.org/copyright)',
+      onSourceTapped: () {},
+    ),
+  ],
+)
+```
 
 ## 🤖 AI Digest
 
