@@ -6,6 +6,7 @@ import 'package:mbtiles/mbtiles.dart';
 import '../../common/map_config.dart';
 import '../../common/map_utilities.dart';
 import '../../common/mbtiles/mbtiles_vector_tile_provider.dart';
+import '../../common/widgets/custom_map_tile_layers.dart';
 import '../../itinerary_map/itinerary_map.dart';
 import '../models/cruise_product.dart';
 import '../utils/cruise_to_itinerary_converter.dart';
@@ -90,23 +91,47 @@ class CruiseItineraryPreview extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: double.infinity,
-                    child: FlutterMap(
-                      options: MapOptions(
-                        initialCenter: _getHomePortLocation(),
-                        initialZoom: 6.5,
-                        interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.none,
-                        ),
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          subdomains: const ['a', 'b', 'c'],
-                          userAgentPackageName:
-                              'com.example.interactive_map_demo',
-                        ),
-                      ],
+                    child: FutureBuilder<MapConfig>(
+                      future:
+                          MapUtilities.buildOfflineVectorMapConfigFromAssets(
+                            baseConfig: const MapConfig(
+                              userAgentPackageName:
+                                  'com.example.interactive_map_demo',
+                              tilesConfig: LocalVectorTilesConfig(
+                                styleAssetPath: 'assets/styles/style.json',
+                              ),
+                            ),
+                            styleAssetPath: 'assets/styles/style.json',
+                            mbtilesAssetPath: 'assets/tiles/planet_map.mbtiles',
+                            createProvider:
+                                (path) => MbTilesVectorTileProvider(
+                                  mbtiles: MbTiles(mbtilesPath: path),
+                                ),
+                            sourceName: 'openmaptiles',
+                          ),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return Container(
+                            color: Theme.of(context).colorScheme.surface,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        return FlutterMap(
+                          options: MapOptions(
+                            initialCenter: _getHomePortLocation(),
+                            initialZoom: 6.5,
+                            interactionOptions: const InteractionOptions(
+                              flags: InteractiveFlag.none,
+                            ),
+                          ),
+                          children: [
+                            CustomMapTileLayers(mapConfig: snapshot.data!),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   // Gradient overlay for text readability
