@@ -127,12 +127,19 @@ The project implements **two distinct interactive map types**, each optimized fo
 **Coordinate System**: `[x, y]` pixel coordinates relative to background map images
 
 ```dart
-// Backend provides pixel coordinates on map images
-ItineraryDay(
-  port: PortData(
-    name: 'Miami',
-    coordinates: [100, 50], // x=100px, y=50px on map image
-  ),
+// Backend provides itinerary with image path and pixel coordinates
+CruiseItinerary(
+  name: '7-Day Caribbean Cruise',
+  imagePath: 'https://api.cruisecompany.com/maps/caribbean_cruise_map.png',
+  days: [
+    ItineraryDay(
+      dayNumber: 1,
+      port: PortData(
+        name: 'Miami',
+        coordinates: [100, 50], // x=100px, y=50px on map image
+      ),
+    ),
+  ],
 );
 
 // App automatically positions everything using pixel coordinates
@@ -140,6 +147,7 @@ final position = _getDayPosition(dayIndex); // → Offset(100, 50)
 // ✅ Marker appears at exact pixel position
 // ✅ Route paths follow pixel coordinates
 // ✅ Tap detection uses pixel-based hit testing
+// ⚠️ Requires online image loading from imagePath
 ```
 
 | ✅ **Pros**                                                               | ❌ **Cons**                                                                     |
@@ -211,7 +219,7 @@ FlutterMap(
 
 #### **🏆 Recommendation: Geographic FlutterMap Implementation**
 
-**For production cruise applications, we strongly recommend the **Geographic FlutterMap approach** for the following reasons:**
+**This approach provides the foundation for a professional, scalable cruise application that meets industry standards and user expectations. For production cruise applications, we strongly recommend the **Geographic FlutterMap approach** for the following reasons:**
 
 ##### **🎯 Key Advantages & Benefits**
 
@@ -235,8 +243,6 @@ FlutterMap(
 | **Ship Deck Plans**         | 🖼️ Image-Based           | Architectural layouts, facility locations               |
 | **Interactive Port Guides** | 🌍 Geographic FlutterMap | Real-world navigation, local attractions                |
 | **Cruise Route Planning**   | 🌍 Geographic FlutterMap | Distance calculations, weather integration              |
-
-**The geographic approach provides the foundation for a professional, scalable cruise application that meets industry standards and user expectations.**
 
 ### Backend Integration & Data Flow
 
@@ -268,63 +274,9 @@ flowchart TD
     L --> M[Dynamic Updates]
 ```
 
-#### **Image-Based Backend Data**
-
-```json
-{
-  "cruise": {
-    "name": "7-Day Caribbean Cruise",
-    "imagePath": "https://api.cruisecompany.com/maps/caribbean_cruise_map.png",
-    "days": [
-      {
-        "dayNumber": 1,
-        "port": {
-          "name": "Miami",
-          "coordinates": [100, 50] // Pixel coordinates on image
-        }
-      }
-    ]
-  }
-}
-```
-
-#### **Geographic Backend Data**
-
-```json
-{
-  "cruise": {
-    "name": "World Cruise",
-    "ports": [
-      {
-        "name": "Miami",
-        "coordinates": [25.7617, -80.1918] // Lat/Lng coordinates
-      }
-    ]
-  }
-}
-```
-
-**MapConfig** is used exclusively for **FlutterMap-based features** (geographic maps), providing a unified configuration for all geographic coordinate implementations:
-
-```dart
-// MapConfig used only for FlutterMap-based geographic maps
-final config = MapConfig(
-  minZoom: 3,
-  maxZoom: 6,
-  initialZoom: 4.5,
-  userAgentPackageName: 'com.example.interactive_map_demo',
-  tilesConfig: LocalVectorTilesConfig(
-    styleAssetPath: 'assets/styles/style.json',
-    providersOverride: TileProviders({
-      'openmaptiles': MbTilesVectorTileProvider(
-        mbtiles: MbTiles(mbtilesPath: 'assets/tiles/planet_map.mbtiles'),
-      ),
-    }),
-  ),
-);
-```
-
 ### Offline Vector Tiles & Performance Engineering
+
+**FlutterMap Geographic Mapping Excellence**: Our **offline vector tile system** demonstrates the power and flexibility of FlutterMap-based geographic mapping, offering unparalleled customization while maintaining exceptional performance.
 
 **Massive Data Optimization**: Transformed a 75GB world map into a 50MB cruise-focused database through strategic zoom level pruning and geographic targeting.
 
@@ -333,18 +285,22 @@ final config = MapConfig(
 - **99.93% Size Reduction**: 75GB world map → 50MB cruise-optimized database
 - **Strategic Zoom Targeting**: Levels 3-6 cover 100% of cruise routes and destinations
 - **Zero Network Dependency**: Perfect offline functionality with instant loading
+- **Offline Reliability**: 100% uptime without network dependency
 - **Cost Effective**: No data charges or roaming fees for map usage
 - **Privacy Enhanced**: No location data sent to external servers
-- **Load Time**: <500ms (vs 3-5 seconds for network tiles)
-- **Memory Usage**: <100MB total system
-- **Offline Reliability**: 100% uptime without network dependency
 
-**Performance Optimizations:**
+#### **FlutterMap Customization & Capabilities**
 
+- **Complete Visual Control**: Customize colors, fonts, icons, and styling
+- **Geographic Targeting**: Include only relevant regions and exclude unnecessary areas
+- **Brand Integration**: Match your app's design language and branding perfectly
+- **Performance Tuning**: Optimize tile loading, caching, and rendering for your use case
+- **Flexible Configuration**: Adjust map behavior, interactions, and features as needed
 - **Vector Tile Caching**: Pre-loaded tiles for instant rendering
 - **GPU Acceleration**: 60fps smooth pan/zoom performance
 - **Memory Management**: Intelligent tile eviction and reloading
 - **Cruise Ship Ready**: Perfect for maritime environments with limited connectivity
+- **Custom Tile Provider**: Specialized tile providers for different data sources
 
 ## 📁 Project Structure
 
