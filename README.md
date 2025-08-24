@@ -84,6 +84,7 @@ A comprehensive Flutter application showcasing advanced interactive map implemen
 <img src="assets/gifs/home-widget.gif" width="45%" alt="Countdown Widget Demo">
 
 - **iOS Home Screen Widget**: Native iOS widget displaying selected cruise countdown
+- **Method Channel Communication**: `home_widget` package enables seamless app-to-widget data sharing
 - **Interactive Countdown Timer**: Real-time countdown showing days, hours, minutes, and seconds
 - **Cruise Selection**: Choose from multiple upcoming cruises to track
 - **Visual Indicators**: Color-coded alerts for cruises departing soon
@@ -96,6 +97,8 @@ A comprehensive Flutter application showcasing advanced interactive map implemen
 
 <img src="assets/gifs/ncl-aqua-deck-plan.gif" width="45%" alt="Deck Plan Demo">
 
+> **⚠️ Work in Progress**: This is a quick preview of what's possible with interactive ship deck plans. Mapping polygon/path lines to the deck plan image isn't fully implemented yet. The current demo shows the foundational architecture and UI components.
+
 - **Multi-Deck Navigation**: Browse 16 decks (Decks 5-20) with mini-map
 - **Interactive Polygons**: Clickable areas for ship facilities
 - **Legend System**: Swipeable bottom sheet with facility categories
@@ -105,11 +108,11 @@ A comprehensive Flutter application showcasing advanced interactive map implemen
 
 **BLE-based mobile access system for stateroom doors**
 - **BLE-Based Access**: Bluetooth Low Energy communication with stateroom locks
-- **ASSA ABLOY Integration**: Secure mobile access credentials via ASSA ABLOY Mobile Access SDK
-- **On-Demand Provisioning**: Keys provisioned when guest requests them in-app
-- **Offline Unlocking**: BLE handshake unlocks staterooms without internet connection
-- **Secure Storage**: Device-bound, time-limited credentials with on-device secure storage
-- **Dart Frog Backend**: Lightweight server for credential provisioning and validation
+- **ASSA ABLOY Mobile Access SDK**: Secure credential provisioning and validation
+- **Bluetooth Low Energy**: Offline stateroom unlocking without internet connection
+- **Dart Frog Backend**: Lightweight server for credential management
+- **Device-bound Credentials**: Time-limited, secure storage with on-device encryption
+- **On-Demand Provisioning**: Keys provisioned when guest requests access in-app
 
 ## 🔧 Technical Details
 
@@ -286,46 +289,54 @@ final config = MapConfig(
 - **Memory Management**: Intelligent tile eviction and reloading
 - **Cruise Ship Ready**: Perfect for maritime environments with limited connectivity
 
-### iOS Home Widget System
-- **Method Channel Communication**: `home_widget` package for app-to-widget data sharing
-- **App Groups**: Secure data persistence between main app and widget extension
-- **Auto-refresh**: Widget updates every hour with cruise countdown timers
-- **Cruise Selection**: Multiple cruise support with visual countdown indicators
-- **Real-time Countdown**: Days, hours, minutes, and seconds display
 
-### Digital Key & BLE Integration
-- **ASSA ABLOY Mobile Access SDK**: Secure credential provisioning and validation
-- **Bluetooth Low Energy**: Offline stateroom unlocking without internet connection
-- **Dart Frog Backend**: Lightweight server for credential management
-- **Device-bound Credentials**: Time-limited, secure storage with on-device encryption
-- **On-Demand Provisioning**: Keys provisioned when guest requests access in-app
 ## 📁 Project Structure
 
 ```
+assets/
+├── gifs/                               # Demo GIFs for README
+│   ├── great-stirrup-cay.gif           # Interactive destination map demo (31MB)
+│   ├── caribbean-cruise.gif            # 7-day Caribbean cruise demo (8MB)
+│   ├── transatlantic-cruise.gif        # 15-day Transatlantic cruise demo (6.4MB)
+│   ├── 7-day-caribbean-cruise-flutter-map.gif # FlutterMap Caribbean demo (6.1MB)
+│   ├── 15-day-transatlantic-cruise-flutter-map.gif # FlutterMap Transatlantic demo (10MB)
+│   ├── ncl-aqua-deck-plan.gif          # Norwegian Aqua deck plan demo (13MB)
+│   ├── cruise-catalog.gif              # Cruise catalog demo (56MB)
+│   ├── cruise-catalog-search.gif       # Cruise catalog search demo (7.6MB)
+│   └── home-widget.gif                 # iOS home widget demo (18MB)
+├── images/
+│   ├── map.jpg                         # Great Stirrup Cay map (1.8MB)
+│   ├── caribbean_cruise_map.png        # Caribbean route map (20KB)
+│   ├── norwegian_pearl_transatlantic_map.png  # Transatlantic route map (20KB)
+│   ├── cruise-ship.svg                 # Cruise ship icon
+│   └── deck-8.svg                      # Ship deck plan
+├── styles/                             # Vector tile styles and fonts
+│   ├── style.json                      # MapTiler-based vector style
+│   ├── fonts/                          # Font files for vector tiles
+│   │   ├── Noto Sans Bold/
+│   │   └── Noto Sans Regular/
+│   └── sprites/                        # Sprite files for vector tiles
+└── tiles/                              # Offline vector tiles
+    └── planet_map.mbtiles              # MBTiles vector tile database
+
 lib/
-├── main.dart                           # App entry point and navigation
-├── interactive_map/                    # Great Stirrup Cay destination map
-│   ├── interactive_map.dart           # Main interactive map widget
-│   ├── models/
-│   │   └── interactive_map_marker_data.dart
-│   ├── pages/
-│   │   └── marker_details_page.dart
+├── common/                             # Shared utilities and configurations
+│   ├── map_config.dart                 # Unified map configuration system
+│   ├── map_utilities.dart              # Map utility functions
+│   ├── mbtiles/
+│   │   └── mbtiles_vector_tile_provider.dart # MBTiles vector tile provider
 │   └── widgets/
-│       ├── interactive_map_error.dart
-│       ├── interactive_map_filter.dart
-│       ├── interactive_map_legend.dart
-│       ├── interactive_map_marker.dart
-│       └── interactive_map_marker_detail.dart
-├── deck_plan/                          # Ship deck plan maps
-│   ├── multi_deck_ship_map.dart       # Core deck map widget
-│   ├── norwegian_aqua_deck_map.dart   # Norwegian Aqua implementation
+│       ├── custom_draggable_sheet.dart
+│       ├── custom_map_tile_layers.dart
+│       ├── custom_marker.dart
+│       ├── custom_polyline_layer.dart
+│       └── custom_sticky_header_delegate.dart
+├── countdown_widget/                   # iOS home screen widget
+│   ├── countdown_modal.dart           # Bottom sheet modal for cruise selection
 │   ├── models/
-│   │   ├── deck_polygon_data.dart
-│   │   └── ship_deck_data.dart
+│   │   └── cruise_countdown.dart      # Cruise countdown data model
 │   └── widgets/
-│       ├── deck_key_legend.dart
-│       ├── deck_mini_map.dart
-│       └── deck_polygon_overlay.dart
+│       └── simple_countdown_widget.dart # Countdown timer widget
 ├── cruise_catalog/                     # Cruise catalog system
 │   ├── cruise_catalog.dart            # Main cruise catalog widget
 │   ├── data/
@@ -344,90 +355,69 @@ lib/
 │       ├── normal_mode_sheet.dart     # Normal browsing content
 │       ├── search_mode_header.dart
 │       └── search_mode_sheet.dart     # Search results content
-├── countdown_widget/                   # NEW: iOS home screen widget
-│   ├── countdown_modal.dart           # Bottom sheet modal for cruise selection
+├── deck_plan/                          # Ship deck plan maps
+│   ├── multi_deck_ship_map.dart       # Core deck map widget
 │   ├── models/
-│   │   └── cruise_countdown.dart      # Cruise countdown data model
+│   │   ├── deck_polygon_data.dart
+│   │   └── ship_deck_data.dart
 │   └── widgets/
-│       └── simple_countdown_widget.dart # Countdown timer widget
-├── digital_key/                        # NEW: Digital stateroom key system
+│       ├── deck_key_legend.dart
+│       ├── deck_mini_map.dart
+│       └── deck_polygon_overlay.dart
+├── digital_key/                        # Digital stateroom key system
 │   ├── digital_key_page.dart          # Main digital key interface
 │   ├── models/
 │   │   └── stateroom_access_data.dart # Stateroom access data model
 │   └── widgets/
 │       └── stateroom_access_page.dart # Stateroom access widget
+├── interactive_map/                    # Great Stirrup Cay destination map
+│   ├── interactive_map.dart           # Main interactive map widget
+│   ├── models/
+│   │   └── interactive_map_marker_data.dart
+│   ├── pages/
+│   │   └── marker_details_page.dart
+│   └── widgets/
+│       ├── interactive_map_error.dart
+│       ├── interactive_map_filter.dart
+│       ├── interactive_map_legend.dart
+│       ├── interactive_map_marker.dart
+│       └── interactive_map_marker_detail.dart
 ├── itinerary/                          # Cruise itinerary and route maps
-    ├── data/                           # Sample itinerary data files
-    │   ├── caribbean_cruise.dart       # Norwegian Aqua 7-day Caribbean cruise
-    │   └── transatlantic_cruise.dart   # Norwegian Pearl 15-night Transatlantic cruise
-    ├── models/
-    │   └── cruise_itinerary.dart       # Core models (CruiseItinerary, PortData, ItineraryDay)
-    ├── pages/
-    │   └── cruise_itinerary_page.dart
-    └── widgets/
-        ├── itinerary_map.dart          # Main route map widget
-        ├── cruise_route_painter.dart   # Custom route visualization painter
-        ├── itinerary_bottom_section.dart  # Draggable bottom sheet with auto-scrolling day indicators
-        ├── itinerary_table.dart
-        ├── port_marker.dart            # Extracted marker widget with complex styling
-        ├── sea_day_info.dart
-        ├── port_day_info.dart
-        └── info_tile.dart
-├── itinerary_map/                      # NEW: Enhanced itinerary map system
-    ├── itinerary_map.dart             # Main itinerary map widget
-    ├── itinerary_map_controller.dart  # Map controller for interactions
-    ├── data/                           # Enhanced itinerary data
-    │   ├── caribbean_cruise.dart       # Caribbean cruise data
-    │   ├── transatlantic_cruise.dart   # Transatlantic cruise data
-    │   └── world_samples.dart          # Global cruise samples (Alaska, Mediterranean, etc.)
-    ├── models/
-    │   └── cruise_itinerary.dart       # Enhanced cruise itinerary models
-    └── widgets/
-        ├── info_widgets/
-        │   ├── info_tile.dart
-        │   ├── port_day_info.dart
-        │   └── sea_day_info.dart
-        ├── itinerary_map_bottom_sheet.dart
-        ├── itinerary_map_markers.dart
-        ├── itinerary_map_polylines.dart
-        └── itinerary_map_tile_layers.dart
-└── common/                             # Shared utilities and configurations
-    ├── map_config.dart                 # Unified map configuration system
-    ├── map_utilities.dart              # Map utility functions
-    ├── mbtiles/
-    │   └── mbtiles_vector_tile_provider.dart # MBTiles vector tile provider
-    └── widgets/
-        ├── custom_draggable_sheet.dart
-        ├── custom_map_tile_layers.dart
-        ├── custom_marker.dart
-        ├── custom_polyline_layer.dart
-        └── custom_sticky_header_delegate.dart
-
-assets/
-├── images/
-│   ├── map.jpg                         # Great Stirrup Cay map (1.8MB)
-│   ├── caribbean_cruise_map.png        # Caribbean route map (20KB)
-│   ├── norwegian_pearl_transatlantic_map.png  # Transatlantic route map (20KB)
-│   ├── cruise-ship.svg                 # Cruise ship icon
-│   └── deck-8.svg                      # Ship deck plan
-├── styles/                             # Vector tile styles and fonts
-│   ├── style.json                      # MapTiler-based vector style
-│   ├── fonts/                          # Font files for vector tiles
-│   │   ├── Noto Sans Bold/
-│   │   └── Noto Sans Regular/
-│   └── sprites/                        # Sprite files for vector tiles
-├── tiles/                              # Offline vector tiles
-│   └── planet_map.mbtiles              # MBTiles vector tile database
-└── videos/
-    ├── great-stirrup-cay.mp4           # Interactive destination map demo (89MB)
-    ├── caribbean-cruise.mp4            # Caribbean cruise itinerary demo (30MB)
-    ├── transatlantic-cruise.mp4        # Transatlantic cruise itinerary demo (22MB)
-    ├── ncl-aqua-deck-plan.mp4          # Norwegian Aqua deck plan demo (47MB)
-    ├── home-widget.mov                 # Home widget demo
-    ├── caribbean-cruise.mp4            # Caribbean cruise demo
-    ├── great-stirrup-cay.mp4           # Great Stirrup Cay demo
-    ├── ncl-aqua-deck-plan.mp4          # NCL Aqua deck plan demo
-    └── transatlantic-cruise.mp4        # Transatlantic cruise demo
+│   ├── data/                           # Sample itinerary data files
+│   │   ├── caribbean_cruise.dart       # Norwegian Aqua 7-day Caribbean cruise
+│   │   └── transatlantic_cruise.dart   # Norwegian Pearl 15-night Transatlantic cruise
+│   ├── models/
+│   │   └── cruise_itinerary.dart       # Core models (CruiseItinerary, PortData, ItineraryDay)
+│   ├── pages/
+│   │   └── cruise_itinerary_page.dart
+│   └── widgets/
+│       ├── cruise_route_painter.dart   # Custom route visualization painter
+│       ├── info_tile.dart
+│       ├── itinerary_bottom_section.dart  # Draggable bottom sheet with auto-scrolling day indicators
+│       ├── itinerary_map.dart          # Main route map widget
+│       ├── itinerary_table.dart
+│       ├── port_day_info.dart
+│       ├── port_marker.dart            # Extracted marker widget with complex styling
+│       └── sea_day_info.dart
+├── itinerary_map/                      # Enhanced itinerary map system
+│   ├── data/                           # Enhanced itinerary data
+│   │   ├── caribbean_cruise.dart       # Caribbean cruise data
+│   │   ├── transatlantic_cruise.dart   # Transatlantic cruise data
+│   │   └── world_samples.dart          # Global cruise samples (Alaska, Mediterranean, etc.)
+│   ├── itinerary_map.dart             # Main itinerary map widget
+│   ├── itinerary_map_controller.dart  # Map controller for interactions
+│   ├── models/
+│   │   └── cruise_itinerary.dart       # Enhanced cruise itinerary models
+│   └── widgets/
+│       ├── info_widgets/
+│       │   ├── info_tile.dart
+│       │   ├── port_day_info.dart
+│       │   └── sea_day_info.dart
+│       ├── itinerary_map_bottom_sheet.dart
+│       ├── itinerary_map_markers.dart
+│       ├── itinerary_map_polylines.dart
+│       └── itinerary_map_tile_layers.dart
+└── main.dart                           # App entry point and navigation
 ```
 
 ## ⚖️ Licensing & Attribution
