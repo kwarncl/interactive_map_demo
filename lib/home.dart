@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:interactive_map_demo/common/map_config.dart';
 import 'package:interactive_map_demo/common/map_utilities.dart';
 import 'package:interactive_map_demo/common/widgets/custom_map_tile_layers.dart';
+import 'package:interactive_map_demo/countdown_widget/models/cruise_countdown.dart';
 import 'package:interactive_map_demo/deck_plan/deck_8_svg_polygon_provider.dart';
 import 'package:interactive_map_demo/deck_plan/models/deck_polygon_data.dart';
 import 'package:interactive_map_demo/deck_plan/models/ship_deck_data.dart';
@@ -21,6 +22,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:mbtiles/mbtiles.dart';
 
 import 'common/mbtiles/mbtiles_vector_tile_provider.dart';
+import 'countdown_widget/countdown_modal.dart';
 import 'cruise_catalog/cruise_catalog.dart';
 import 'cruise_catalog/data/ncl_cruise_catalog.dart';
 import 'deck_plan/multi_deck_ship_map.dart';
@@ -50,6 +52,55 @@ class Home extends StatelessWidget {
         title: const Text('Interactive Maps'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.timer),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder:
+                      (context) => CountdownModal(
+                        cruises: [
+                          CruiseCountdown(
+                            cruiseName: '7-Day Caribbean Cruise',
+                            shipName: 'Norwegian Aqua',
+                            departureDate: DateTime.now().add(
+                              const Duration(days: 15),
+                            ),
+                            destination: 'Miami to Caribbean Islands',
+                          ),
+                          CruiseCountdown(
+                            cruiseName: '15-Day Transatlantic Cruise',
+                            shipName: 'Norwegian Pearl',
+                            departureDate: DateTime.now().add(
+                              const Duration(days: 45),
+                            ),
+                            destination: 'Barcelona to Miami',
+                          ),
+                          CruiseCountdown(
+                            cruiseName: 'Alaska Inside Passage',
+                            shipName: 'Norwegian Bliss',
+                            departureDate: DateTime.now().add(
+                              const Duration(days: 90),
+                            ),
+                            destination: 'Seattle to Alaska',
+                          ),
+                        ],
+                      ),
+                ),
+              );
+            },
+            tooltip: 'Cruise Countdown',
+          ),
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(8),

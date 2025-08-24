@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:home_widget/home_widget.dart';
 
 import 'home.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Set App Group ID for iOS widget communication
+  await HomeWidget.setAppGroupId('group.com.example.interactiveMapDemo');
+
   runApp(const MyApp());
 }
 
