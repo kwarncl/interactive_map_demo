@@ -457,7 +457,7 @@ This project uses **fully offline mapping** with local vector tiles and styles. 
 ## 🤖 AI Digest
 
 ### Quick Project Understanding
-**Purpose**: Flutter demo showcasing six interactive implementations, with **primary focus on backend-driven itinerary maps** that automatically generate from API data, plus **cruise catalog system**, **iOS home widgets**, and **digital stateroom keys**.
+**Purpose**: Flutter demo showcasing six interactive map implementations, with **primary focus on backend-driven itinerary maps** that automatically generate from API data, plus **cruise catalog system**, **iOS home widgets**, and **digital stateroom keys**.
 
 **Key Innovation**: **Backend-Driven Map System**
 - Backend provides daily itinerary locations as `[x, y]` pixel coordinates
@@ -466,7 +466,7 @@ This project uses **fully offline mapping** with local vector tiles and styles. 
 
 **Key Components**:
 - `InteractiveMap`: POI-based map with markers and filtering
-- `MultiDeckShipMap`: Deck plans with polygon interactions  
+- `MultiDeckShipMap`: Deck plans with polygon interactions (work in progress)
 - `ItineraryMap`: **Backend-driven** route map with automatic positioning
 - `CruiseCatalogMap`: Interactive world map with NCL cruise routes and search
 - `CountdownWidget`: iOS home screen widget with cruise countdown timers
@@ -484,21 +484,24 @@ This project uses **fully offline mapping** with local vector tiles and styles. 
 - **Centralized Scroll Management**: Single CustomScrollView with unified controller
 - **Content-Only Widgets**: Separated content from scroll management for better animations
 
-
-**File Structure**: Seven main modules (`interactive_map/`, `deck_plan/`, `cruise_catalog/`, `countdown_widget/`, `digital_key/`, `itinerary/`, `itinerary_map/`) with models, pages, and widgets subdirectories, plus shared `common/` utilities.
+**File Structure**: Eight main modules (`common/`, `countdown_widget/`, `cruise_catalog/`, `deck_plan/`, `digital_key/`, `interactive_map/`, `itinerary/`, `itinerary_map/`) with models, pages, and widgets subdirectories, organized alphabetically.
 
 **Entry Point**: `main.dart` → `Home` → Individual feature implementations.
 
 **Dependencies**: Flutter setup with `flutter_map`, `latlong2`, `flutter_map_animations`, `vector_map_tiles`, `mbtiles`, `home_widget`, `jovial_svg` for comprehensive feature support.
 
-**Assets**: `assets/images/` (maps, icons, deck plans), `assets/styles/` (vector tile styles and fonts), `assets/tiles/` (offline MBTiles database), `assets/videos/` (feature demonstrations).
+**Assets**: `assets/gifs/` (demo GIFs for README), `assets/images/` (maps, icons, deck plans), `assets/styles/` (vector tile styles and fonts), `assets/tiles/` (offline MBTiles database).
 
-**Demo Videos**: Video demonstrations integrated within feature sections, available in `assets/videos/`:
-- `great-stirrup-cay.mp4` (89MB) - Interactive destination map with POI filtering
-- `ncl-aqua-deck-plan.mp4` (47MB) - Multi-deck ship navigation with interactive polygons  
-- `caribbean-cruise.mp4` (30MB) - 7-day Caribbean cruise route with day navigation
-- `transatlantic-cruise.mp4` (22MB) - 15-night transatlantic cruise with auto-scrolling indicators
-- `home-widget.mov` - iOS home screen widget demonstration
+**Demo GIFs**: Visual demonstrations integrated within feature sections, available in `assets/gifs/`:
+- `great-stirrup-cay.gif` (31MB) - Interactive destination map with POI filtering
+- `caribbean-cruise.gif` (8MB) - 7-day Caribbean cruise route with day navigation
+- `transatlantic-cruise.gif` (6.4MB) - 15-night transatlantic cruise with auto-scrolling indicators
+- `7-day-caribbean-cruise-flutter-map.gif` (6.1MB) - FlutterMap Caribbean demo
+- `15-day-transatlantic-cruise-flutter-map.gif` (10MB) - FlutterMap Transatlantic demo
+- `ncl-aqua-deck-plan.gif` (13MB) - Multi-deck ship navigation with interactive polygons
+- `cruise-catalog.gif` (56MB) - Cruise catalog system demo
+- `cruise-catalog-search.gif` (7.6MB) - Cruise catalog search functionality
+- `home-widget.gif` (18MB) - iOS home screen widget demonstration
 
 **Performance**: Cached image sizes, efficient rendering, zoom-based visibility, minimal rebuilds, centralized scroll management.
 
@@ -524,3 +527,4 @@ This project uses **fully offline mapping** with local vector tiles and styles. 
 - **Digital Key System**: BLE-based stateroom access with ASSA ABLOY Mobile Access SDK
 - **Offline Vector Tiles**: Local MBTiles support for offline map functionality
 - **Fully Offline Implementation**: No external tile servers, all mapping data is local
+- **Platform Focus**: iOS and Android only (removed web, desktop, and test platforms)
