@@ -31,20 +31,29 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  # UI and Icons
   cupertino_icons: ^1.0.8
-  vector_math: ^2.1.4
-  jovial_svg: ^1.1.27
+
+  # Map and Geographic Libraries
   flutter_map: ^8.2.1
   flutter_map_animations: ^0.9.0
+  flutter_map_marker_popup: ^8.0.0
   latlong2: ^0.9.1
-  flutter_map_marker_popup:
   vector_map_tiles: ^9.0.0-beta.8
-  vector_tile_renderer: ^6.0.0
-  mbtiles: ^0.4.0
+
+  # Vector Graphics and Math
+  vector_math: ^2.1.4
+  jovial_svg: ^1.1.27
+
+  # File System and Path Management
   path: ^1.9.1
   path_provider: ^2.1.5
+
+  # Offline Map Tiles
+  mbtiles: ^0.4.0
+  vector_tile_renderer: ^6.0.0
+
+  # iOS Home Widget Support
   home_widget: ^0.8.0
 
 dev_dependencies:
